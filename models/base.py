@@ -6,6 +6,7 @@ from torch import nn
 
 
 class BaseModel(nn.Module, ABC):
+    """Base model for NN"""
 
     @abstractmethod
     def loss(self, *args) -> torch.Tensor:
@@ -25,7 +26,7 @@ class BaseModel(nn.Module, ABC):
         Args:
             *args: Batches of data (and targets) as defined by the used dataset.
         Returns:
-            loss (Tuple[torch.Tensor, torch.Tensor]): Mean and variance of each measure.
+            prediction (Tuple[torch.Tensor, torch.Tensor]): Mean and variance of each measure.
         """
         pass
 
