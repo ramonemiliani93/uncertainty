@@ -5,11 +5,22 @@ import torch
 from torch import nn
 
 
-class BaseModel(nn.Module, ABC):
+class UncertaintyModel(nn.Module, ABC):
     """Base model for NN"""
 
     @abstractmethod
-    def loss(self, *args) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass of model.
+        Args:
+            inputs: Batches of data.
+        Returns:
+            predictions (torch.Tensor): Predictions of the net.
+        """
+        pass
+
+    @abstractmethod
+    def loss(self, *args, **kwargs) -> torch.Tensor:
         """
         Use forward pass of model and targets to predict loss that will be back propagated.
         Args:
@@ -18,18 +29,6 @@ class BaseModel(nn.Module, ABC):
             loss (torch.Tensor): Error to be used in back propagation.
         """
         pass
-
-    @abstractmethod
-    def predict_uncertainty(self, *args) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Use forward pass of model to predict mean and variance.
-        Args:
-            *args: Batches of data (and targets) as defined by the used dataset.
-        Returns:
-            prediction (Tuple[torch.Tensor, torch.Tensor]): Mean and variance of each measure.
-        """
-        pass
-
 
 
 
