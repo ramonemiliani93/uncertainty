@@ -118,8 +118,8 @@ class TwoMoonDataset(UncertaintyDataset):
         super(TwoMoonDataset,  self).__init__()
         self.num_samples = num_samples
         self.samples = np.random.binomial(n=1, p=0.5, size=self.num_samples)
-        self.targets = self.function(self.samples)
-        print(self.targets.shape)
+        self.z, self.v = self.function(self.samples)
+        print(self.z.shape)
 
     @property
     def num_samples(self) -> int:
@@ -131,11 +131,21 @@ class TwoMoonDataset(UncertaintyDataset):
             raise ValueError("Number of samples has to be a positive integer.")
         self._num_samples = value
 
-    def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, item):
         sample = torch.tensor(self.samples[item])
-        target = torch.tensor(self.targets[item])
+        z = torch.tensor(self.z[item])
+        v = torch.tensor(self.v[item])
 
-        return sample, target
+        # v1 = ((v[0], v[1]), (v[0], v[2]), (v[0], v[3]))
+        # v2 = ((v[1], v[0]), (v[1], v[2]), (v[1], v[3]))
+        # v3 = ((v[2], v[0]), (v[2], v[1]), (v[2], v[3]))
+        # v4 = ((v[3], v[0]), (v[3], v[1]), (v[3], v[2]))
+        v1 = ((v[1], v[0]), (v[2], v[0]), (v[3], v[0]))
+        v2 = ((v[0], v[1]), (v[2], v[1]), (v[3], v[1]))
+        v3 = ((v[0], v[2]), (v[1], v[2]), (v[3], v[2]))
+        v4 = ((v[0], v[3]), (v[1], v[3]), (v[2], v[3]))
+
+        return sample, z, v1, v2, v3, v4
 
     def __len__(self) -> int:
         return self.num_samples
@@ -203,7 +213,7 @@ class TwoMoonDataset(UncertaintyDataset):
         v4 = np.array([f4(x) for x in z.tolist()])
         points = np.array(list(zip(v1, v2, v3, v4)))
 
-        return z
+        return z, points
 
 
 if __name__ == '__main__':
@@ -236,8 +246,140 @@ if __name__ == '__main__':
 
     # Extract all points and plot
     data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][1]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
     ax.scatter(data[::2], data[1::2])
 
-    plt.title('Two Moon scatter plot')
+    plt.title('Two Moon scatter plot (2d)')
     plt.show()
 
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    # Create dataset
+    dataset = TwoMoonDataset(500)
+
+    # Create plot
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax3 = fig.add_subplot(1, 3, 3)
+
+    # Extract all points and plot
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][2][0]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    ax1.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][2][1]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax2.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][2][2]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax3.scatter(data[::2], data[1::2])
+
+    plt.title('Two Moon scatter plot (4d)')
+
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    # Create dataset
+    dataset = TwoMoonDataset(500)
+
+    # Create plot
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax3 = fig.add_subplot(1, 3, 3)
+
+    # Extract all points and plot
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][3][0]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    ax1.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][3][1]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax2.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][3][2]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax3.scatter(data[::2], data[1::2])
+
+    plt.title('Two Moon scatter plot (4d)')
+
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    # Create dataset
+    dataset = TwoMoonDataset(500)
+
+    # Create plot
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax3 = fig.add_subplot(1, 3, 3)
+
+    # Extract all points and plot
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][4][0]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    ax1.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][4][1]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax2.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][4][2]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax3.scatter(data[::2], data[1::2])
+
+    plt.title('Two Moon scatter plot (4d)')
+
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+
+    # Create dataset
+    dataset = TwoMoonDataset(500)
+
+    # Create plot
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 3, 1)
+    ax2 = fig.add_subplot(1, 3, 2)
+    ax3 = fig.add_subplot(1, 3, 3)
+
+    # Extract all points and plot
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][5][0]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    ax1.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][5][1]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax2.scatter(data[::2], data[1::2])
+
+    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][5][2]]
+    # data = [x.numpy() for index in range(len(dataset)) for x in dataset[index]]
+    # ax2.scatter(data[::2], data[1::2])
+    ax3.scatter(data[::2], data[1::2])
+
+    plt.title('Two Moon scatter plot (4d)')
+
+    plt.tight_layout()
+    plt.show()
