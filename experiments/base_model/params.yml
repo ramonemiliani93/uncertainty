@@ -1,0 +1,13 @@
+model:
+  module: models
+  name: UncertaintyModel
+
+optimizer:
+  module: torch.optim
+  name: Adam
+
+Parameters:
+  batch_size: 32
+  num_epochs: 30
+  save_summary_steps: 1
+  learning_rate: 0.001
