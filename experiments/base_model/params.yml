@@ -6,6 +6,11 @@ optimizer:
   module: torch.optim
   name: Adam
 
+dataset:
+  module: dataloader
+  name: SineDataset
+  params: something here
+
 Parameters:
   batch_size: 32
   num_epochs: 30

@@ -62,11 +62,10 @@ def train(model, optimizer, dataloader, params, metrics):
                 # extract data from torch Variable, move to cpu, convert to numpy arrays
                 output_batch = output_batch.data.cpu().numpy()
                 labels_batch = labels_batch.data.cpu().numpy()
-                mask = mask.cpu().numpy()
 
                 # compute all metrics on this batch
                 for metric in metrics.values():
-                    metric(output_batch, labels_batch, mask)
+                    metric(output_batch, labels_batch)
 
             t.set_postfix(loss='{:05.3f}'.format(metrics['loss'].mean()))
             t.update()
