@@ -2,6 +2,10 @@ model:
   module: models
   name: UncertaintyModel
 
+loss:
+  module: torch.nn
+  name: MSELoss
+
 optimizer:
   module: torch.optim
   name: Adam
@@ -10,9 +14,10 @@ dataset:
   module: dataloader
   name: SineDataset
   params: something here
+  # more if needed
 
 Parameters:
-  batch_size: 32
+  batch_size: 500
   num_epochs: 30
   save_summary_steps: 1
-  learning_rate: 0.001
+  learning_rate: 0.001 # ?
