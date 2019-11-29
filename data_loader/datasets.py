@@ -5,6 +5,11 @@ from annoy import AnnoyIndex
 import numpy as np
 import torch
 from torch.utils.data import Dataset
+import seaborn as sns
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+sns.set(style="dark")
 
 
 class UncertaintyDataset(Dataset, ABC):
@@ -129,20 +134,20 @@ class TwoMoonDataset(UncertaintyDataset):
         self._num_samples = value
 
     def __getitem__(self, item):
-        sample = torch.tensor(self.samples[item])
+        samples = torch.tensor(self.samples[item])
         z = torch.tensor(self.z[item])
         v = torch.tensor(self.v[item])
 
-        # v1 = ((v[0], v[1]), (v[0], v[2]), (v[0], v[3]))
-        # v2 = ((v[1], v[0]), (v[1], v[2]), (v[1], v[3]))
-        # v3 = ((v[2], v[0]), (v[2], v[1]), (v[2], v[3]))
-        # v4 = ((v[3], v[0]), (v[3], v[1]), (v[3], v[2]))
-        v1 = ((v[1], v[0]), (v[2], v[0]), (v[3], v[0]))
-        v2 = ((v[0], v[1]), (v[2], v[1]), (v[3], v[1]))
-        v3 = ((v[0], v[2]), (v[1], v[2]), (v[3], v[2]))
-        v4 = ((v[0], v[3]), (v[1], v[3]), (v[2], v[3]))
+        # data = [(v[0], v[0]), (v[0], v[1]), (v[0], v[2]), (v[0], v[3])]
+        # data += [(v[1], v[0]), (v[1], v[1]), (v[1], v[2]), (v[1], v[3])]
+        # data += [(v[2], v[0]), (v[2], v[1]), (v[2], v[2]), (v[2], v[3])]
+        # data += [(v[3], v[0]), (v[3], v[1]), (v[3], v[2]), (v[3], v[3])]
+        data = [(v[0], v[0]), (v[1], v[0]), (v[2], v[0]), (v[3], v[0])]
+        data += [(v[0], v[1]), (v[1], v[1]), (v[2], v[1]), (v[3], v[1])]
+        data += [(v[0], v[2]), (v[1], v[2]), (v[2], v[2]), (v[3], v[2])]
+        data += [(v[0], v[3]), (v[1], v[3]), (v[2], v[3]), (v[3], v[3])]
 
-        return sample, z, v1, v2, v3, v4
+        return samples, z, data
 
     def __len__(self) -> int:
         return self.num_samples
@@ -189,7 +194,7 @@ class TwoMoonDataset(UncertaintyDataset):
             return x[0] - x[1] + np.random.normal(1) * np.sqrt(0.03 + (0.05 * (3 + x[0])))
 
         def f2(x):
-            return (x[0]**2) - (1/2) * x[1] + np.random.normal(1) * np.sqrt(0.03 + (0.03 * np.linalg.norm(x)))
+            return (x[0]**2) + (x[1] / 2) + np.random.normal(1) * np.sqrt(0.03 + (0.03 * np.linalg.norm(x)))
 
         def f3(x):
             return x[0] * x[1] - x[0] + np.random.normal(1) * np.sqrt(0.03 + (0.05 * np.linalg.norm(x)))
@@ -212,7 +217,6 @@ class TwoMoonDataset(UncertaintyDataset):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
 
     # Create dataset
     dataset = SineDataset(500, (0, 10))
@@ -230,7 +234,6 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
 
     # Create dataset
     dataset = TwoMoonDataset(500)
@@ -248,112 +251,29 @@ if __name__ == '__main__':
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
     # Create dataset
     dataset = TwoMoonDataset(500)
+    v1 = mpimg.imread('v1.png')
+    v2 = mpimg.imread('v2.png')
+    v3 = mpimg.imread('v3.png')
+    v4 = mpimg.imread('v4.png')
 
-    # Create plot
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 3, 1)
-    ax2 = fig.add_subplot(1, 3, 2)
-    ax3 = fig.add_subplot(1, 3, 3)
+    # Set up the matplotlib figure
+    f, axes = plt.subplots(4, 4, figsize=(15, 15), sharex=True, sharey=True)
 
-    # Extract all points and plot
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][2][0]]
-    ax1.scatter(data[::2], data[1::2])
+    # Rotate the starting point around the cubehelix hue circle
+    for ax, i in zip(axes.flat, range(16)):
+        data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][-1][i]]
 
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][2][1]]
-    ax2.scatter(data[::2], data[1::2])
+        # Generate and plot a random bivariate dataset
+        if not (i % 5):
+            txt = f"v{i // 5 + 1}"
+            ax.text(0.5, 0.5, txt, horizontalalignment='center',
+                    verticalalignment='center', fontsize=20,
+                    color='black', transform=ax.transAxes)
+            ax.set_facecolor('grey')
+        else:
+            ax.scatter(data[::2], data[1::2])
 
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][2][2]]
-    ax3.scatter(data[::2], data[1::2])
-
-    plt.title('Two Moon scatter plot v1 vs rest')
-
-    plt.tight_layout()
-    plt.show()
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    # Create dataset
-    dataset = TwoMoonDataset(500)
-
-    # Create plot
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 3, 1)
-    ax2 = fig.add_subplot(1, 3, 2)
-    ax3 = fig.add_subplot(1, 3, 3)
-
-    # Extract all points and plot
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][3][0]]
-    ax1.scatter(data[::2], data[1::2])
-
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][3][1]]
-    ax2.scatter(data[::2], data[1::2])
-
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][3][2]]
-    ax3.scatter(data[::2], data[1::2])
-
-    plt.title('Two Moon scatter plot v2 vs rest')
-
-    plt.tight_layout()
-    plt.show()
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    # Create dataset
-    dataset = TwoMoonDataset(500)
-
-    # Create plot
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 3, 1)
-    ax2 = fig.add_subplot(1, 3, 2)
-    ax3 = fig.add_subplot(1, 3, 3)
-
-    # Extract all points and plot
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][4][0]]
-    ax1.scatter(data[::2], data[1::2])
-
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][4][1]]
-    ax2.scatter(data[::2], data[1::2])
-
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][4][2]]
-    ax3.scatter(data[::2], data[1::2])
-
-    plt.title('Two Moon scatter plot (v3 vs rest)')
-
-    plt.tight_layout()
-    plt.show()
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-
-    # Create dataset
-    dataset = TwoMoonDataset(500)
-
-    # Create plot
-    fig = plt.figure()
-    ax1 = fig.add_subplot(1, 3, 1)
-    ax2 = fig.add_subplot(1, 3, 2)
-    ax3 = fig.add_subplot(1, 3, 3)
-
-    # Extract all points and plot
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][5][0]]
-    ax1.scatter(data[::2], data[1::2])
-
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][5][1]]
-    ax2.scatter(data[::2], data[1::2])
-
-    data = [x.numpy() for index in range(len(dataset)) for x in dataset[index][5][2]]
-    ax3.scatter(data[::2], data[1::2])
-
-    plt.title('Two Moon scatter plot (v4 vs rest)')
-
-    plt.tight_layout()
+    f.tight_layout()
     plt.show()
