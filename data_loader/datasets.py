@@ -253,10 +253,6 @@ if __name__ == '__main__':
 if __name__ == '__main__':
     # Create dataset
     dataset = TwoMoonDataset(500)
-    v1 = mpimg.imread('v1.png')
-    v2 = mpimg.imread('v2.png')
-    v3 = mpimg.imread('v3.png')
-    v4 = mpimg.imread('v4.png')
 
     # Set up the matplotlib figure
     f, axes = plt.subplots(4, 4, figsize=(15, 15), sharex=True, sharey=True)
