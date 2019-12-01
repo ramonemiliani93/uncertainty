@@ -1,88 +1,20 @@
 import argparse
 import os
 import os.path as osp
-import importlib
+
 import torch
 import torch.nn
-from torch.utils.data import DataLoader
+
 import logging
 import utils
-from tensorboardX import SummaryWriter
-from ignite.engine import Events  # , create_supervised_trainer, create_supervised_evaluator
+
 from ignite.metrics import Loss
-from ignite.utils import convert_tensor
+
 from ignite.engine.engine import Engine, State, Events
 import numpy as np
 import matplotlib.pyplot as plt
-
-def create_summary_writer(log_dir):
-    writer = SummaryWriter(logdir=log_dir)
-    return writer
-
-
-def instantiate(module, name):
-    module = importlib.import_module(module)
-    instance = getattr(module, name)
-    return instance
-
-
-# TODO
-def get_data_loaders(dataset, train_batch_size, val_batch_size):
-    train_loader = DataLoader(dataset, batch_size=train_batch_size)
-    val_loader = DataLoader(dataset, batch_size=val_batch_size)
-    return train_loader, val_loader
-
-
-def _prepare_batch(batch, device=None, non_blocking=False):
-    """Prepare batch for training: pass to a device with options.
-    """
-    x, y = batch
-    return (convert_tensor(x, device=device, non_blocking=non_blocking),
-            convert_tensor(y, device=device, non_blocking=non_blocking))
-
-
-def create_train_engine(algorithm, optimizer,
-                        device=None, non_blocking=False,
-                        prepare_batch=_prepare_batch,
-                        output_transform=lambda x, y, y_pred, loss: loss.item()):
-    if device:
-        algorithm.model.to(device)
-
-    def _update(engine, batch):
-        algorithm.model.train()
-        optimizer.zero_grad()
-        x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-        y_pred = algorithm.model(x)
-        loss = algorithm.loss(*(x, y))  # TODO CHECK
-        loss.backward()
-        optimizer.step()
-        return output_transform(x, y, y_pred, loss)
-
-    return Engine(_update)
-
-
-def create_supervised_evaluator(algorithm, metrics=None,
-                                device=None, non_blocking=False,
-                                prepare_batch=_prepare_batch,
-                                output_transform=lambda x, y, y_pred: (y_pred, y,)):
-    metrics = metrics or {}
-
-    if device:
-        algorithm.model.to(device)
-
-    def _inference(engine, batch):
-        algorithm.model.eval()
-        with torch.no_grad():
-            x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-            y_pred = algorithm.model(x)
-            return output_transform(x, y, y_pred)
-
-    engine = Engine(_inference)
-
-    for name, metric in metrics.items():
-        metric.attach(engine, name)
-
-    return engine
+from utils import create_train_engine, create_supervised_evaluator,\
+    get_data_loaders, create_summary_writer, instantiate
 
 
 def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_dir):
