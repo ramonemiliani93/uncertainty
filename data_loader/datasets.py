@@ -65,8 +65,8 @@ class SineDataset(UncertaintyDataset):
         self._domain = low, high
 
     def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor]:
-        sample = torch.tensor(self.samples[item])
-        target = torch.tensor(self.targets[item])
+        sample = torch.tensor([self.samples[item]])
+        target = torch.tensor([self.targets[item]])
 
         return sample, target
 
