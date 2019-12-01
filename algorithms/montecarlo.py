@@ -10,9 +10,10 @@ from helpers.functional import enable_dropout
 
 class MonteCarloDropout(UncertaintyAlgorithm):
 
-    def __init__(self, num_samples: int, p: float, model: nn.Module, **kwargs):
-        self.num_samples = num_samples
-        self.p = p
+    def __init__(self, dict_params, **kwargs):
+        self.num_samples = dict_params.get('num_samples')
+        self.p = dict_params.get('p')
+        model = dict_params.get('model')
         self.model = model(**dict(p=self.p, **kwargs))
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
