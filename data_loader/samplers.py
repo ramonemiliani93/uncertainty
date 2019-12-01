@@ -103,7 +103,7 @@ if __name__ == '__main__':
     from data_loader.datasets import SineDataset
 
     # Create dataset
-    dataset = SineDataset(500, (0, 10))
+    dataset = SineDataset(1000, (0, 10))
 
     # Implement data loader with Locality Sampler and extract a batch
     loader = DataLoader(dataset, batch_size=120, sampler=LocalitySampler(dataset, 50, 3, 40))
