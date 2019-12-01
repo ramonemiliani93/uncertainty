@@ -1,11 +1,7 @@
 import json
 import yaml
 import torch
-from ignite.engine import Events  # , create_supervised_trainer, create_supervised_evaluator
-from ignite.metrics import Loss
-from ignite.utils import convert_tensor
 from tensorboardX import SummaryWriter
-from ignite.engine import Events  # , create_supervised_trainer, create_supervised_evaluator
 from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
 from torch.utils.data import DataLoader

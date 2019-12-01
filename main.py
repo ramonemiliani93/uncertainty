@@ -4,13 +4,10 @@ import os.path as osp
 
 import torch
 import torch.nn
-
 import logging
 import utils
-
 from ignite.metrics import Loss
-
-from ignite.engine.engine import Engine, State, Events
+from ignite.engine.engine import Events
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import create_train_engine, create_supervised_evaluator,\
