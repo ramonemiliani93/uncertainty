@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 import torch
 from torch import nn
-from torch.nn.functional import mse_loss
+from torch.nn.functional import softplus
 from algorithms.base import UncertaintyAlgorithm
 from helpers.functional import enable_dropout
 
@@ -12,19 +12,26 @@ class DeepEnsembles(UncertaintyAlgorithm):
 
     def __init__(self, model: nn.Module, num_models: int = 5, eps: float = 0.01, adversarial: bool = True, **kwargs):
         # Update to predict mean and variance
-        kwargs.update({'num_outputs': 2 * kwargs.get('num_outputs', 1)})
         self.num_models = num_models
         self.eps = eps
         self.adversarial = adversarial
-        self.model = nn.ModuleList([model(**kwargs) for i in range(self.num_models)])
+        self.mean = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
+        self.log_variance = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
+        self.model = nn.ModuleDict({
+            'mean': self.mean,
+            'log_variance': self.log_variance
+        })
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         # Sample one model from the ensemble (workaround to the fact that models should be trained in parallel with
         # different data order, will take longer to converge to same point.)
-        model = np.random.choice(self.model)
+        index = np.random.randint(0, self.num_models)
+        mean_model = self.mean[index]
+        log_variance_model = self.log_variance[index]
 
         # Set model to train mode
-        model.train()
+        mean_model.train()
+        log_variance_model.train()
 
         # Extract data and set data gradient to true for use in th FGSA
         data, target = args
@@ -32,18 +39,22 @@ class DeepEnsembles(UncertaintyAlgorithm):
         if self.adversarial:
             data.requires_grad = True
 
-        # Forward pass through the model
-        prediction = model(data)
-
         # Extract mean and variance from prediction
-        mean = prediction[:, 0::2]
-        variance = prediction[:, 1::2]
+        predictive_mean = mean_model(data)
+        predictive_log_variance = log_variance_model(data)
 
         # Calculate the loss
-        nll = self.calculate_nll(target, mean, variance)
+        if 'warm_start_it' in kwargs and 'it' in kwargs:
+            if kwargs.get('it') < kwargs.get('warm_start_it'):
+                nll = self.calculate_nll(target, predictive_mean, (torch.ones_like(predictive_mean) * 0.001).log())
+            else:
+                nll = self.calculate_nll(target, predictive_mean, predictive_log_variance)
+
+        else:
+            nll = self.calculate_nll(target, predictive_mean, predictive_log_variance)
 
         # If adversarial training enabled generate sample
-        if self.adversarial:
+        if self.adversarial:  # TODO
             # Calculate gradients of model in backward pass
             nll.backward()
 
@@ -59,31 +70,35 @@ class DeepEnsembles(UncertaintyAlgorithm):
             variance = prediction[:, 1::2]
             
             # Add to loss
-            nll += self.calculate_nll(target, mean, variance)
+            nll += self.calculate_nll(target, mean, predictive_log_variance)
             
         return nll
 
     def predict_with_uncertainty(self, *args, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
         # Set model to evaluation
-        self.model.eval()
+        self.mean.eval()
+        self.log_variance.eval()
 
         # Sample multiple times from the ensemble of models
-        mean, variance = [], []
+        predictive_mean_list, predictive_log_variance_list = [], []
         with torch.no_grad():
             for i in range(self.num_models):
-                prediction = self.model[i](args[0])
-                mean.append(prediction[:, 0::2])
-                variance.append(prediction[:, 1::2])
+                predictive_mean = self.mean[i](args[0])
+                predictive_mean_list.append(predictive_mean)
+                predictive_log_variance = self.log_variance[i](args[0])
+                predictive_log_variance_list.append(predictive_log_variance)
 
             # Stack each of the models
-            mean = torch.stack(mean)
-            variance = torch.stack(variance)
+            predictive_mean_ensemble = torch.stack(predictive_mean_list)
+            predictive_log_variance_ensemble = torch.stack(predictive_log_variance_list)
 
             # Compute statistics
-            predicted_mean = mean.mean(0)
-            predicted_variance = (torch.exp(variance) + mean ** 2).mean(0) - predicted_mean
+            predictive_mean_model = predictive_mean_ensemble.mean(0)
+            print(predictive_log_variance)
+            predictive_variance_model = (torch.exp(predictive_log_variance_ensemble)
+                                         + predictive_mean_ensemble ** 2).mean(0) - predictive_mean_model ** 2
 
-        return predicted_mean, predicted_variance
+        return predictive_mean_model, predictive_variance_model
 
     def fgsm_attack(self, data, data_grad):
         # Collect the element-wise sign of the data gradient
@@ -99,20 +114,20 @@ class DeepEnsembles(UncertaintyAlgorithm):
         return perturbed_data
 
     @staticmethod
-    def calculate_nll(target, mean, variance):
+    def calculate_nll(target, mean, log_variance):
         # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
-        loss = (variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(variance))).sum()
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance))).mean()
 
-        return loss
+        return nll
 
 
 if __name__ == '__main__':
     import numpy as np
-    import pandas as pd
-    import seaborn as sns
     from torch.optim import Adam
     from torch.utils.data import DataLoader
     from matplotlib import pyplot as plt
+    from matplotlib.patches import Patch
+    from matplotlib.lines import Line2D
 
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
@@ -121,7 +136,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(SineDataset(500, (0, 10)), batch_size=500)
     optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
 
-    for epoch in range(50000):  # loop over the dataset multiple times
+    for epoch in range(100000):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(train_loader, 0):
@@ -129,7 +144,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            loss = algorithm.loss(*data)
+            loss = algorithm.loss(*data, warm_start_it=50000, it=epoch)
             loss.backward()
             optimizer.step()
 
@@ -139,19 +154,38 @@ if __name__ == '__main__':
               (epoch + 1, i + 1, running_loss))
 
     print('Finished Training')
+
     x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
     mean, var = algorithm.predict_with_uncertainty(x_tensor)
     std = np.sqrt(var)
 
-    plt.plot(x, mean.numpy(), '-', color='gray')
-    plt.fill_between(x, (mean.numpy() - 2 * std.numpy())[:, 0], (mean.numpy() + 2 * std.numpy())[:, 0], color='gray', alpha=0.2)
+    # Start plotting
+    fig, ax = plt.subplots()
+
+    ax.plot(x, mean.numpy(), '-', color='gray')
+    ax.fill_between(x, (mean.numpy() - 2 * std.numpy())[:, 0], (mean.numpy() + 2 * std.numpy())[:, 0], color='gray', alpha=0.2)
 
     # Plot real function
     y = x * np.sin(x)
-    plt.plot(x, y)
+    ax.plot(x, y, '--')
 
+    # Plot train data points
+    x_tensor, y_tensor = next(iter(train_loader))
+    x = x_tensor.numpy()
+    y = y_tensor.numpy()
+    ax.scatter(x, y, c='r', s=2)
+
+    # Custom legend
+    legend_elements = [Line2D([0], [0], color='b', lw=1, linestyle='--'),
+                       Line2D([0], [0], marker='o', color='w', markerfacecolor='r', markersize=6),
+                       Line2D([0], [0], color='black', lw=1),
+                       Patch(facecolor='grey', edgecolor='grey', alpha=0.2)]
+    ax.legend(legend_elements, ['Ground truth mean', 'Training data', '$\mu(x)$', '$\pm 2\sigma(x)$'])
+
+    plt.title('$y = x \, sin(x) + 0.3 \, \epsilon_1 + 0.3 \, x \, \epsilon_2 \;' + 'where' + '\; \epsilon_1,\,\epsilon_2 \sim \mathcal{N}(0,1)$')
     plt.xlim(-4, 14)
     plt.ylim(-15, 15)
+    plt.grid()
     plt.show()
     print("Finished plotting")
