@@ -7,6 +7,7 @@ from ignite.utils import convert_tensor
 from torch.utils.data import DataLoader
 import importlib
 
+
 class Params:
     """Class that loads hyperparameters from a json file.
 
@@ -37,6 +38,7 @@ class Params:
     def dict(self):
         """Gives dict-like access to Params instance by `params.dict['learning_rate']"""
         return self.__dict__
+
 
 def create_summary_writer(log_dir):
     writer = SummaryWriter(logdir=log_dir)
