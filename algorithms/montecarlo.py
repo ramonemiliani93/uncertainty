@@ -11,8 +11,12 @@ from helpers.functional import enable_dropout
 class MonteCarloDropout(UncertaintyAlgorithm):
 
     def __init__(self, **kwargs):
-        self.num_samples = kwargs.get('num_samples')
-        self.p = kwargs.get('p')
+        super(MonteCarloDropout, self).__init__(**kwargs)
+
+        # Algorithm parameters
+        self.num_samples: int = 'num_samples'
+
+        # Create model
         model = kwargs.get('model')
         self.model = model(**dict(**kwargs))
 
@@ -41,9 +45,9 @@ class MonteCarloDropout(UncertaintyAlgorithm):
             # Calculate statistics of the outputs
             prediction = torch.stack(prediction)
             mean = prediction.mean(0).squeeze()
-            var = prediction.var(0).squeeze().sqrt() #FIXME
+            std = prediction.var(0).squeeze().sqrt() #FIXME
 
-        return mean, var
+        return mean, std
 
 
 if __name__ == '__main__':
@@ -59,7 +63,7 @@ if __name__ == '__main__':
 
     algorithm = MonteCarloDropout(model=MLP, p=0.05, num_samples=10000)
     dict_params = {'num_samples': 500, 'domain': (0, 10)}
-    train_loader = DataLoader(SineDataset(dict_params), batch_size=500)
+    train_loader = DataLoader(SineDataset(**dict_params), batch_size=500)
     optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
 
     for epoch in range(10000):  # loop over the dataset multiple times

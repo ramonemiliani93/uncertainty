@@ -1,21 +1,22 @@
 from typing import Tuple
-from abc import abstractmethod
 
 import torch
 from torch import nn
-from torch.nn.functional import softplus
 from algorithms.base import UncertaintyAlgorithm
-from helpers.functional import enable_dropout
-import numpy as np
 
 
 class DeepEnsembles(UncertaintyAlgorithm):
 
     def __init__(self, **kwargs):
-        # Update to predict mean and variance
-        self.num_models = kwargs.get('num_models')
-        self.eps = kwargs.get('eps')
-        self.adversarial = kwargs.get('adversarial')
+        super(DeepEnsembles, self).__init__(**kwargs)
+
+        # Algorithm parameters
+        self.num_models: int = 'num_models'
+        self.eps: float = 'eps'
+        self.adversarial: bool = 'adversarial'
+        self.warm_start_it: int = 'warm_start_it'
+
+        # Create models
         model = kwargs.get('model')
         self.mean = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
         self.log_variance = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
@@ -23,6 +24,9 @@ class DeepEnsembles(UncertaintyAlgorithm):
             'mean': self.mean,
             'log_variance': self.log_variance
         })
+
+        # Reserved params
+        self._current_it = 0
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         # Sample one model from the ensemble (workaround to the fact that models should be trained in parallel with
@@ -46,12 +50,8 @@ class DeepEnsembles(UncertaintyAlgorithm):
         predictive_log_variance = log_variance_model(data)
 
         # Calculate the loss
-        if 'warm_start_it' in kwargs and 'it' in kwargs:
-            if kwargs.get('it') < kwargs.get('warm_start_it'):
-                nll = self.calculate_nll(target, predictive_mean, (torch.ones_like(predictive_mean) * 0.001).log())
-            else:
-                nll = self.calculate_nll(target, predictive_mean, predictive_log_variance)
-
+        if self._current_it < self.warm_start_it:
+            nll = self.calculate_nll(target, predictive_mean, (torch.ones_like(predictive_mean) * 0.001).log())
         else:
             nll = self.calculate_nll(target, predictive_mean, predictive_log_variance)
 
@@ -99,8 +99,9 @@ class DeepEnsembles(UncertaintyAlgorithm):
             # print(predictive_log_variance)
             predictive_variance_model = (torch.exp(predictive_log_variance_ensemble)
                                          + predictive_mean_ensemble ** 2).mean(0) - predictive_mean_model ** 2
+            preditive_std_model = predictive_variance_model.sqrt()
 
-        return predictive_mean_model, predictive_variance_model
+        return predictive_mean_model, preditive_std_model
 
     def fgsm_attack(self, data, data_grad):
         # Collect the element-wise sign of the data gradient
@@ -134,10 +135,10 @@ if __name__ == '__main__':
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
 
-    params = {'num_models': 1, 'eps': 0.01, 'adversarial': False, 'model': MLP}
+    params = {'num_models': 1, 'eps': 0.01, 'adversarial': False, 'model': MLP, 'warm_start_it': 15000}
     algorithm = DeepEnsembles(**params)
     kwargs = {'num_samples': 500, 'domain': (0, 10)}
-    train_loader = DataLoader(SineDataset(kwargs), batch_size=500)
+    train_loader = DataLoader(SineDataset(**kwargs), batch_size=500)
     optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
 
     for epoch in range(10000):  # loop over the dataset multiple times
