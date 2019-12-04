@@ -2,7 +2,9 @@ from typing import Tuple
 
 import torch
 from torch import nn
+
 from algorithms.base import UncertaintyAlgorithm
+from utils import plot_toy_uncertainty
 
 
 class DeepEnsembles(UncertaintyAlgorithm):
