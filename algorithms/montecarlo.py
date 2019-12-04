@@ -40,8 +40,8 @@ class MonteCarloDropout(UncertaintyAlgorithm):
 
             # Calculate statistics of the outputs
             prediction = torch.stack(prediction)
-            mean = prediction.mean(0).squeeze()
-            var = prediction.var(0).squeeze().sqrt() #FIXME
+            mean = prediction.mean(0)  # .squeeze()
+            var = prediction.var(0).sqrt() #FIXME
 
         return mean, var
 
