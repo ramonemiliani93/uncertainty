@@ -6,6 +6,10 @@ from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
 from torch.utils.data import DataLoader
 import importlib
+import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+import matplotlib.pyplot as plt
 
 
 class Params:
@@ -107,3 +111,34 @@ def create_supervised_evaluator(algorithm, metrics=None,
         metric.attach(engine, name)
 
     return engine
+
+
+def plot_toy_uncertainty(x_test, mean, std, train_loader):
+    fig, ax = plt.subplots()
+
+    ax.plot(x_test, mean.numpy(), '-', color='black')
+    ax.fill_between(x_test, mean.numpy() - 2 * std.numpy(), mean.numpy() + 2 * std.numpy(), color='gray', alpha=0.2)
+    # ax.fill_between(x, (mean.numpy() - 2 * std.numpy())[:, 0], (mean.numpy() + 2 * std.numpy())[:, 0], color='gray',
+    #               alpha=0.2)
+    # Plot real function
+    y = x_test * np.sin(x_test)
+    ax.plot(x_test, y, '--')
+
+    # Plot train data points
+    x_tensor, y_tensor = next(iter(train_loader))
+    x = x_tensor.numpy()
+    y = y_tensor.numpy()
+    ax.scatter(x, y, c='r', s=2)
+
+    # Custom legend
+    legend_elements = [Line2D([0], [0], color='b', lw=1, linestyle='--'),
+                       Line2D([0], [0], marker='o', color='w', markerfacecolor='r', markersize=6),
+                       Line2D([0], [0], color='black', lw=1),
+                       Patch(facecolor='grey', edgecolor='grey', alpha=0.2)]
+    ax.legend(legend_elements, ['Ground truth mean', 'Training data', '$\mu(x)$', '$\pm 2\sigma(x)$'])
+    plt.title(
+        '$y = x \, sin(x) + 0.3 \, \epsilon_1 + 0.3 \, x \, \epsilon_2 \;' + 'where' + '\; \epsilon_1,\,\epsilon_2 \sim \mathcal{N}(0,1)$')
+    plt.xlim(-4, 14)
+    plt.ylim(-15, 15)
+    plt.grid()
+    plt.show()
