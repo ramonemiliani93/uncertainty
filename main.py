@@ -113,14 +113,14 @@ if __name__ == '__main__':
     x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
     mean, std = algorithm.predict_with_uncertainty(x_tensor)
-
+    mean, std = mean.reshape(-1), std.reshape(-1)
     # Start plotting
     fig, ax = plt.subplots()
 
     ax.plot(x, mean.numpy(), '-', color='black')
-    #ax.fill_between(x, mean.numpy() - 2 * std.numpy(), mean.numpy() + 2 * std.numpy(), color='gray', alpha=0.2)
-    ax.fill_between(x, (mean.numpy() - 2 * std.numpy())[:, 0], (mean.numpy() + 2 * std.numpy())[:, 0], color='gray',
-                    alpha=0.2)
+    ax.fill_between(x, mean.numpy() - 2 * std.numpy(), mean.numpy() + 2 * std.numpy(), color='gray', alpha=0.2)
+    # ax.fill_between(x, (mean.numpy() - 2 * std.numpy())[:, 0], (mean.numpy() + 2 * std.numpy())[:, 0], color='gray',
+     #               alpha=0.2)
     # Plot real function
     y = x * np.sin(x)
     ax.plot(x, y, '--')
