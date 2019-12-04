@@ -36,15 +36,16 @@ class SineDataset(UncertaintyDataset):
 
     """
 
-    def __init__(self, num_samples: int, domain: Tuple[float, float]):
+    def __init__(self, dict_params):
         """
         Args:
             num_samples: Number of samples to draw from the domain of the function.
             domain: X range of the data to be generated.
         """
         super(SineDataset,  self).__init__()
-        self.num_samples = num_samples
-        self.domain = domain
+
+        self.num_samples = dict_params.get('num_samples')
+        self.domain = dict_params.get('domain')
         self.samples = np.random.uniform(*self.domain, self.num_samples)
         self.targets = self.function(self.samples)
         print(self.targets.shape)
