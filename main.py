@@ -7,7 +7,7 @@ import torch.nn
 import logging
 
 import utils
-from ignite.metrics import Loss
+from ignite.metrics import Average
 from ignite.engine.engine import Events
 import numpy as np
 from utils import create_train_engine, create_supervised_evaluator,\
@@ -20,11 +20,10 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
     if torch.cuda.is_available():
         device = 'cuda'
-
-    # trainer = create_supervised_trainer(model, optimizer, loss, device=device)
+    loss_metric = Average()
     trainer = create_train_engine(model, optimizer, device=device)
     evaluator = create_supervised_evaluator(model,
-                                            metrics={'loss': Loss(model.loss)},
+                                            metrics={'loss': loss_metric},
                                             device=device)
 
     @trainer.on(Events.ITERATION_COMPLETED(every=log_interval))
@@ -94,7 +93,7 @@ if __name__ == '__main__':
     dataset = instantiate(dataset_module, dataset_name)
     dataset = dataset(**dataset_params)
 
-    train_loader, _ = get_data_loaders(dataset, train_batch_size=500, val_batch_size=100)
+    train_loader, _ = get_data_loaders(dataset, train_batch_size=params.parameters['batch_size'], val_batch_size=100)
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))
 
