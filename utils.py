@@ -126,7 +126,7 @@ def plot_toy_uncertainty(x_test, mean, std, train_loader):
     ax.plot(x_test, y, '--')
 
     # Plot train data points
-    x_tensor, y_tensor = next(iter(train_loader))
+    x_tensor, y_tensor, _ = next(iter(train_loader))
     x = x_tensor.numpy()
     y = y_tensor.numpy()
     ax.scatter(x, y, c='r', s=2)
