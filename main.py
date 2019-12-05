@@ -92,7 +92,7 @@ if __name__ == '__main__':
     dataset_module, dataset_name = params.dataset['module'], params.dataset['name']
     dataset_params = params.dataset['params']
     dataset = instantiate(dataset_module, dataset_name)
-    dataset = dataset(dataset_params)
+    dataset = dataset(**dataset_params)
 
     train_loader, _ = get_data_loaders(dataset, train_batch_size=500, val_batch_size=100)
     # Train the model
