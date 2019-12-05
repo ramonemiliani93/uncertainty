@@ -25,7 +25,6 @@ class SineDataset(UncertaintyDataset):
         self.domain = domain
         self.samples = np.random.uniform(*self.domain, self.num_samples)
         self.targets = self.function(self.samples)
-        # print(self.targets.shape)
 
     @property
     def num_samples(self) -> int:
@@ -48,11 +47,15 @@ class SineDataset(UncertaintyDataset):
             raise ValueError("Invalid domain specified.")
         self._domain = low, high
 
-    def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         sample = torch.tensor([self.samples[item]])
         target = torch.tensor([self.targets[item]])
+        if self.probabilities is None:
+            probability = torch.tensor([1])
+        else:
+            probability = torch.tensor(self.probabilities[item])
 
-        return sample, target
+        return sample, target, probability
 
     def __len__(self) -> int:
         return self.num_samples
@@ -75,7 +78,7 @@ class SineDataset(UncertaintyDataset):
             nearest_neighbors = t.get_nns_by_item(i, neighbors)
             neighbor_map[i, :] = nearest_neighbors
 
-        return neighbor_map.astype(int)
+        self.neighbor_map = neighbor_map.astype(int)
 
     @staticmethod
     def function(x: np.ndarray) -> np.ndarray:
