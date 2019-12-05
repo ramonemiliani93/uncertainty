@@ -16,7 +16,7 @@ class LocalitySampler(Sampler):
         Output: All secondary sampling units which is a sample of at most m · n points.
                 If a new sample is needed repeat from Step 2
     """
-    def __init__(self, data_source: UncertaintyDataset, neighbors: int, psu: int, ssu, **kwargs):
+    def __init__(self, data_source, **kwargs):
         """
         Args:
             data_source (UncertaintyDataset): Uncertainty dataset with implemented generate_neighbors function.
@@ -26,10 +26,10 @@ class LocalitySampler(Sampler):
         """
         super(LocalitySampler, self).__init__(data_source)
         self.data_source = data_source
-        self.neighbors = neighbors
-        self.psu = psu
-        self.ssu = ssu
-        self.neighbor_map = self.data_source.generate_neighbors(neighbors=self.neighbors, **kwargs)
+        self.neighbors = kwargs.get('neighbors')
+        self.psu = kwargs.get('psu')
+        self.ssu = kwargs.get('ssu')
+        self.neighbor_map = self.data_source.generate_neighbors(**kwargs)
 
     @property
     def neighbors(self) -> int:

@@ -81,7 +81,6 @@ if __name__ == '__main__':
     algorithm_params.update({'model': model})
     algorithm = algorithm(**algorithm_params)
 
-    # model_to_train = model_to_train(algorithm_params)
     # Instantiate optimizer
     optimizer_module, optimizer_name = params.optimizer['module'], params.optimizer['name']
     optimizer = instantiate(optimizer_module, optimizer_name)
@@ -93,7 +92,13 @@ if __name__ == '__main__':
     dataset = instantiate(dataset_module, dataset_name)
     dataset = dataset(**dataset_params)
 
-    train_loader, _ = get_data_loaders(dataset, train_batch_size=params.parameters['batch_size'], val_batch_size=100)
+    # Instantiate sampler
+    sampler_module, sampler_name = params.sampler['module'], params.sampler['name']
+    sampler_params = params.sampler['params']
+    sampler = instantiate(sampler_module, sampler_name)
+    sampler = sampler(dataset, **sampler_params)
+
+    train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))
 

@@ -55,9 +55,9 @@ def instantiate(module, name):
     return instance
 
 
-def get_data_loaders(dataset, train_batch_size, val_batch_size):
-    train_loader = DataLoader(dataset, batch_size=train_batch_size)
-    val_loader = DataLoader(dataset, batch_size=val_batch_size)
+def get_data_loaders(dataset, batch_size, sampler=None):
+    train_loader = DataLoader(dataset, batch_size=batch_size, sampler=sampler)
+    val_loader = DataLoader(dataset, batch_size=batch_size, sampler=sampler)
     return train_loader, val_loader
 
 
