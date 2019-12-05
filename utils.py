@@ -64,9 +64,10 @@ def get_data_loaders(dataset, batch_size, sampler=None):
 def _prepare_batch(batch, device=None, non_blocking=False):
     """Prepare batch for training: pass to a device with options.
     """
-    x, y = batch
+    x, y, probability = batch
     return (convert_tensor(x, device=device, non_blocking=non_blocking),
-            convert_tensor(y, device=device, non_blocking=non_blocking))
+            convert_tensor(y, device=device, non_blocking=non_blocking),
+            convert_tensor(probability, device=device, non_blocking=non_blocking))
 
 
 def create_train_engine(algorithm, optimizer,
