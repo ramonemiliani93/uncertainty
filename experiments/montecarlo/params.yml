@@ -23,7 +23,7 @@ dataset:
 
 sampler:
   module: data_loader
-  name: LocalitySampler
+  name:
   params:
     neighbors: 100
     ssu: 100

@@ -95,8 +95,10 @@ if __name__ == '__main__':
     # Instantiate sampler
     sampler_module, sampler_name = params.sampler['module'], params.sampler['name']
     sampler_params = params.sampler['params']
-    sampler = instantiate(sampler_module, sampler_name)
-    sampler = sampler(dataset, **sampler_params)
+    sampler = None
+    if params.sampler['name'] is not None:
+        sampler = instantiate(sampler_module, sampler_name)
+        sampler = sampler(dataset, **sampler_params)
 
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
     # Train the model
