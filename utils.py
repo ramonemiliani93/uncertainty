@@ -80,7 +80,6 @@ def create_train_engine(algorithm, optimizer,
         algorithm.model.train()
         optimizer.zero_grad()
         batch = prepare_batch(batch, device=device, non_blocking=non_blocking)
-        # y_pred = algorithm.model(x)
         loss = algorithm.loss(*batch)
         loss.backward()
         optimizer.step()
@@ -92,7 +91,7 @@ def create_train_engine(algorithm, optimizer,
 def create_supervised_evaluator(algorithm, metrics=None,
                                 device=None, non_blocking=False,
                                 prepare_batch=_prepare_batch,
-                                output_transform=lambda x, y, y_pred: (y_pred, y,)):
+                                output_transform=lambda x: x.item()):
     metrics = metrics or {}
 
     if device:
@@ -103,8 +102,8 @@ def create_supervised_evaluator(algorithm, metrics=None,
         with torch.no_grad():
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
             # TODO FIX THIS ASAP
-            y_pred_mean, y_pred_var = algorithm.predict_with_uncertainty(x)
-            return output_transform(x, y, y_pred_mean)
+            loss = algorithm.loss(*(x, y))
+            return output_transform(loss)
 
     engine = Engine(_inference)
 
