@@ -102,6 +102,7 @@ def create_supervised_evaluator(algorithm, metrics=None,
         algorithm.model.eval()
         with torch.no_grad():
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
+            # TODO FIX THIS ASAP
             y_pred_mean, y_pred_var = algorithm.predict_with_uncertainty(x)
             return output_transform(x, y, y_pred_mean)
 
