@@ -31,6 +31,10 @@ class LocalitySampler(Sampler):
         self.ssu = kwargs.get('ssu')
         self.neighbor_map = self.data_source.generate_neighbors(**kwargs)
 
+        # Create probabilities for adjusting the gradients
+        self.data_source.generate_probabilities(self.neighbors, self.psu, self.ssu)
+
+
     @property
     def neighbors(self) -> int:
         return self._neighbors
