@@ -68,19 +68,19 @@ def _prepare_batch(batch, device=None, non_blocking=False):
 def create_train_engine(algorithm, optimizer,
                         device=None, non_blocking=False,
                         prepare_batch=_prepare_batch,
-                        output_transform=lambda x, y, y_pred, loss: loss.item()):
+                        output_transform=lambda batch, loss: loss.item()):
     if device:
         algorithm.model.to(device)
 
     def _update(engine, batch):
         algorithm.model.train()
         optimizer.zero_grad()
-        x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-        y_pred = algorithm.model(x)
-        loss = algorithm.loss(*(x, y))
+        batch = prepare_batch(batch, device=device, non_blocking=non_blocking)
+        # y_pred = algorithm.model(x)
+        loss = algorithm.loss(*batch)
         loss.backward()
         optimizer.step()
-        return output_transform(x, y, y_pred, loss)
+        return output_transform(batch, loss)
 
     return Engine(_update)
 
@@ -98,8 +98,8 @@ def create_supervised_evaluator(algorithm, metrics=None,
         algorithm.model.eval()
         with torch.no_grad():
             x, y = prepare_batch(batch, device=device, non_blocking=non_blocking)
-            y_pred = algorithm.model(x)
-            return output_transform(x, y, y_pred)
+            y_pred_mean, y_pred_var = algorithm.predict_with_uncertainty(x)
+            return output_transform(x, y, y_pred_mean)
 
     engine = Engine(_inference)
 
