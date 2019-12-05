@@ -8,17 +8,17 @@ class UncertaintyDataset(Dataset, ABC):
     """Uncertainty dataset."""
     def __init__(self):
         super(UncertaintyDataset, self).__init__()
-        self.neighbors: np.ndarray = None
+        self.neighbor_map: np.ndarray = None
         self.probabilities: np.ndarray = None
 
     def generate_probabilities(self, neighbors, psu, ssu):
-        assert self.neighbors is not None, "Generate neighbors first"
-        probabilities = np.zeros((len(self.neighbors, 1)))
-        for i in range(len(self.neighbors)):
+        assert self.neighbor_map is not None, "Generate neighbors first"
+        probabilities = np.zeros((len(self.neighbor_map), 1))
+        for i in range(len(self.neighbor_map)):
             probability = 0
-            for j in range(len(self.neighbors)):
-                probability += (ssu / neighbors) * np.isin(i, self.neighbors[j, :])
-            probability *= psu / len(self.neighbors)
+            for j in range(len(self.neighbor_map)):
+                probability += (ssu / neighbors) * np.isin(i, self.neighbor_map[j, :])
+            probability *= psu / len(self.neighbor_map)
             probabilities[i, 0] = probability
         self.probabilities = probabilities
 

@@ -29,11 +29,12 @@ class LocalitySampler(Sampler):
         self.neighbors = kwargs.get('neighbors')
         self.psu = kwargs.get('psu')
         self.ssu = kwargs.get('ssu')
-        self.neighbor_map = self.data_source.generate_neighbors(**kwargs)
+
+        # Generate neighbors
+        self.data_source.generate_neighbors(**kwargs)
 
         # Create probabilities for adjusting the gradients
         self.data_source.generate_probabilities(self.neighbors, self.psu, self.ssu)
-
 
     @property
     def neighbors(self) -> int:
@@ -67,18 +68,6 @@ class LocalitySampler(Sampler):
             raise Warning("Number of secondary sampling units greater than number of neighbors.")
         self._ssu = value
 
-    @property
-    def neighbor_map(self) -> np.ndarray:
-        return self._neighbor_map
-
-    @neighbor_map.setter
-    def neighbor_map(self, value: np.ndarray):
-        if not np.issubdtype(value.dtype, np.integer):
-            raise ValueError("Invalid neighbor map provided, must be an array of integers")
-        if len(self.data_source) != len(value):
-            raise ValueError("Invalid neighbor map provided, number of rows should match number of samples in dataset.")
-        self._neighbor_map = value
-
     def __iter__(self):
         # Get total number of samples in the dataset and sample primary units without replacement.
         n = len(self.data_source)
@@ -92,8 +81,8 @@ class LocalitySampler(Sampler):
         secondary_units = secondary_units.ravel()
 
         # Extract neighbors from neighbor map using flat indices from the (row, columns) pairs.
-        flat_indices = np.ravel_multi_index((primary_units, secondary_units), self.neighbor_map.shape)
-        samples = self.neighbor_map.ravel()[flat_indices].tolist()
+        flat_indices = np.ravel_multi_index((primary_units, secondary_units), self.data_source.neighbor_map.shape)
+        samples = self.data_source.neighbor_map.ravel()[flat_indices].tolist()
 
         return iter(samples)
 
