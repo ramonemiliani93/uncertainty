@@ -1,7 +1,7 @@
 import json
 import yaml
 import torch
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 from ignite.engine.engine import Engine, State, Events
 from ignite.utils import convert_tensor
 from torch.utils.data import DataLoader
@@ -45,7 +45,7 @@ class Params:
 
 
 def create_summary_writer(log_dir):
-    writer = SummaryWriter(logdir=log_dir)
+    writer = SummaryWriter(log_dir=log_dir)
     return writer
 
 
