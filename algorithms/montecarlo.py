@@ -24,9 +24,7 @@ class MonteCarloDropout(UncertaintyAlgorithm):
         # Forward pass and MSE loss
         data, target, probability = args
         prediction = self.model(data)
-        mse = mse_loss(target, prediction, reduction='none')
-        mse += probability
-        mse = mse.mean()
+        mse = mse_loss(target, prediction)
 
         return mse
 

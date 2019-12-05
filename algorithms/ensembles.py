@@ -38,7 +38,7 @@ class DeepEnsembles(UncertaintyAlgorithm):
         log_variance_model = self.log_variance[index]
 
         # Extract data and set data gradient to true for use in th FGSA
-        data, target = args
+        data, target, probability = args
 
         if self.adversarial:
             data.requires_grad = True
