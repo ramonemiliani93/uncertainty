@@ -86,16 +86,21 @@ if __name__ == '__main__':
     optimizer = instantiate(optimizer_module, optimizer_name)
     optimizer = optimizer(algorithm.model.parameters(), lr=1e-2)
 
-    # Instantiate dataset
+    # Get dataset configs
     dataset_module, dataset_name = params.dataset['module'], params.dataset['name']
     dataset_params = params.dataset['params']
     dataset = instantiate(dataset_module, dataset_name)
-    dataset = dataset(**dataset_params)
 
-    # Instantiate sampler
+    # Get sampler condigs
     sampler_module, sampler_name = params.sampler['module'], params.sampler['name']
     sampler_params = params.sampler['params']
     sampler = instantiate(sampler_module, sampler_name)
+
+    # add sampler params to dataset
+    dataset_params.update({'ssu': sampler_params.get('ssu'),
+                           'psu': sampler_params.get('psu'),
+                           'neighbors': sampler_params.get('neighbors')})
+    dataset = dataset(**dataset_params)
     sampler = sampler(dataset, **sampler_params)
 
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
