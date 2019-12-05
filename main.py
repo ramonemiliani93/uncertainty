@@ -80,7 +80,7 @@ if __name__ == '__main__':
     model = instantiate(model_module, model_name)
 
     algorithm_params.update({'model': model})
-    algorithm = algorithm(algorithm_params)
+    algorithm = algorithm(**algorithm_params)
 
     # model_to_train = model_to_train(algorithm_params)
     # Instantiate optimizer
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     dataset_module, dataset_name = params.dataset['module'], params.dataset['name']
     dataset_params = params.dataset['params']
     dataset = instantiate(dataset_module, dataset_name)
-    dataset = dataset(dataset_params)
+    dataset = dataset(**dataset_params)
 
     train_loader, _ = get_data_loaders(dataset, train_batch_size=500, val_batch_size=100)
     # Train the model
