@@ -101,9 +101,9 @@ def create_supervised_evaluator(algorithm, metrics=None,
     def _inference(engine, batch):
         algorithm.model.eval()
         with torch.no_grad():
-            x, y, prob = prepare_batch(batch, device=device, non_blocking=non_blocking)
+            batch = prepare_batch(batch, device=device, non_blocking=non_blocking)
             # TODO FIX THIS ASAP
-            loss = algorithm.loss(*(x, y))
+            loss = algorithm.loss(*batch)
             return output_transform(loss)
 
     engine = Engine(_inference)
