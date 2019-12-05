@@ -5,6 +5,7 @@ algorithm:
     num_models: 1
     eps: 0.01
     adversarial: False
+    warm_start_it: 50000
 
 model:
   module: models

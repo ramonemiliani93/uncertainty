@@ -2,7 +2,7 @@ from typing import Tuple
 
 import torch
 from torch import nn
-
+import numpy as np
 from algorithms.base import UncertaintyAlgorithm
 from utils import plot_toy_uncertainty
 
