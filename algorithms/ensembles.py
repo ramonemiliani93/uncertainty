@@ -37,10 +37,6 @@ class DeepEnsembles(UncertaintyAlgorithm):
         mean_model = self.mean[index]
         log_variance_model = self.log_variance[index]
 
-        # Set model to train mode
-        mean_model.train()
-        log_variance_model.train()
-
         # Extract data and set data gradient to true for use in th FGSA
         data, target = args
 

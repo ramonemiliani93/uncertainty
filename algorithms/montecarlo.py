@@ -21,9 +21,6 @@ class MonteCarloDropout(UncertaintyAlgorithm):
         self.model = model(**dict(**kwargs))
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
-        # Set model to train mode
-        self.model.train()
-
         # Forward pass and MSE loss
         data, target = args
         prediction = self.model(data)
