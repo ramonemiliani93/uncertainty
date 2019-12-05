@@ -10,11 +10,11 @@ from helpers.functional import enable_dropout
 
 class MonteCarloDropout(UncertaintyAlgorithm):
 
-    def __init__(self, dict_params, **kwargs):
-        self.num_samples = dict_params.get('num_samples')
-        self.p = dict_params.get('p')
-        model = dict_params.get('model')
-        self.model = model(**dict(p=self.p, **kwargs))
+    def __init__(self, **kwargs):
+        self.num_samples = kwargs.get('num_samples')
+        self.p = kwargs.get('p')
+        model = kwargs.get('model')
+        self.model = model(**dict(**kwargs))
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         # Set model to train mode
@@ -58,7 +58,8 @@ if __name__ == '__main__':
     from models.mlp import MLP
 
     algorithm = MonteCarloDropout(model=MLP, p=0.05, num_samples=10000)
-    train_loader = DataLoader(SineDataset(500, (0, 10)), batch_size=500)
+    dict_params = {'num_samples': 500, 'domain': (0, 10)}
+    train_loader = DataLoader(SineDataset(dict_params), batch_size=500)
     optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
 
     for epoch in range(10000):  # loop over the dataset multiple times

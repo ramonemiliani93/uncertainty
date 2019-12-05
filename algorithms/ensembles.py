@@ -6,15 +6,17 @@ from torch import nn
 from torch.nn.functional import softplus
 from algorithms.base import UncertaintyAlgorithm
 from helpers.functional import enable_dropout
+import numpy as np
 
 
 class DeepEnsembles(UncertaintyAlgorithm):
 
-    def __init__(self, model: nn.Module, num_models: int = 5, eps: float = 0.01, adversarial: bool = True, **kwargs):
+    def __init__(self, **kwargs):
         # Update to predict mean and variance
-        self.num_models = num_models
-        self.eps = eps
-        self.adversarial = adversarial
+        self.num_models = kwargs.get('num_models')
+        self.eps = kwargs.get('eps')
+        self.adversarial = kwargs.get('adversarial')
+        model = kwargs.get('model')
         self.mean = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
         self.log_variance = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
         self.model = nn.ModuleDict({
@@ -94,7 +96,7 @@ class DeepEnsembles(UncertaintyAlgorithm):
 
             # Compute statistics
             predictive_mean_model = predictive_mean_ensemble.mean(0)
-            print(predictive_log_variance)
+            # print(predictive_log_variance)
             predictive_variance_model = (torch.exp(predictive_log_variance_ensemble)
                                          + predictive_mean_ensemble ** 2).mean(0) - predictive_mean_model ** 2
 
@@ -132,11 +134,13 @@ if __name__ == '__main__':
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
 
-    algorithm = DeepEnsembles(model=MLP, adversarial=False)
-    train_loader = DataLoader(SineDataset(500, (0, 10)), batch_size=500)
+    params = {'num_models': 1, 'eps': 0.01, 'adversarial': False, 'model': MLP}
+    algorithm = DeepEnsembles(**params)
+    kwargs = {'num_samples': 500, 'domain': (0, 10)}
+    train_loader = DataLoader(SineDataset(kwargs), batch_size=500)
     optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
 
-    for epoch in range(100000):  # loop over the dataset multiple times
+    for epoch in range(10000):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(train_loader, 0):
