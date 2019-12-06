@@ -1,11 +1,13 @@
+from typing import Tuple
+
 import torch
 import numpy as np
 import pandas as pd
-from typing import Tuple
-from torch.utils.data import Dataset
+
+from .base import UncertaintyDataset
 
 
-class WineRedDataset(Dataset):
+class WineRedDataset(UncertaintyDataset):
     def __init__(self):
         super(WineRedDataset, self).__init__()
 

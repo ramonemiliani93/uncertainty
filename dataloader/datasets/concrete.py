@@ -1,11 +1,13 @@
+from typing import Tuple
+
 import torch
 import numpy as np
 import pandas as pd
-from typing import Tuple
-from torch.utils.data import Dataset
+
+from .base import UncertaintyDataset
 
 
-class ConcreteDataset(Dataset):
+class ConcreteDataset(UncertaintyDataset):
     def __init__(self):
         super(ConcreteDataset, self).__init__()
 

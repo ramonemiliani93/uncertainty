@@ -1,11 +1,13 @@
+from typing import Tuple
+
 import torch
 import numpy as np
-from typing import Tuple
 from sklearn.datasets import load_boston
-from torch.utils.data import Dataset
+
+from .base import UncertaintyDataset
 
 
-class BostonDataset(Dataset):
+class BostonDataset(UncertaintyDataset):
     def __init__(self):
         super(BostonDataset, self).__init__()
 
