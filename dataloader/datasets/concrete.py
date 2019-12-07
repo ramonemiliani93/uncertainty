@@ -3,6 +3,7 @@ from typing import Tuple
 import torch
 import numpy as np
 import pandas as pd
+from annoy import AnnoyIndex
 
 from .base import UncertaintyDataset
 

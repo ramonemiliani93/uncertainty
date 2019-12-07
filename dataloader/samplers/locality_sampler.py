@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import Sampler
 
-from data_loader.datasets.base import UncertaintyDataset
+from dataloader.datasets.base import UncertaintyDataset
 
 
 class LocalitySampler(Sampler):

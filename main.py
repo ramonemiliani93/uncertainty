@@ -84,7 +84,11 @@ if __name__ == '__main__':
     # Instantiate dataset
     dataset_module, dataset_name = params.dataset['module'], params.dataset['name']
     dataset = instantiate(dataset_module, dataset_name)
-    dataset_params = params.dataset['params']
+
+    if dataset_params == 'None':
+        dataset = dataset()
+    else:
+        dataset = dataset(**dataset_params)
 
     # Instantiate sampler
     sampler_module, sampler_name = params.sampler['module'], params.sampler['name']

@@ -2,6 +2,7 @@ from typing import Tuple
 
 import torch
 import numpy as np
+from annoy import AnnoyIndex
 from sklearn.datasets import load_boston
 
 from .base import UncertaintyDataset
