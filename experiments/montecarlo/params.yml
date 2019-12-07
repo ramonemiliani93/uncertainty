@@ -14,15 +14,15 @@ optimizer:
   name: Adam
 
 dataset:
-  module: data_loader
-  name: SineDataset
-  params:
-    num_samples: 500
-    domain: !!python/tuple [0, 10]
+  module: dataloader
+  name: BostonDataset
+  params: None
+  #  num_samples: 500
+  #  domain: !!python/tuple [0, 10]
   # more if needed
 
 sampler:
-  module: data_loader
+  module: dataloader
   name:
   params:
     neighbors: 100
