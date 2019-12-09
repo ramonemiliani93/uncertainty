@@ -58,7 +58,7 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/montecarlo', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/combined', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
@@ -89,13 +89,13 @@ if __name__ == '__main__':
     # Instantiate sampler
     sampler_module, sampler_name = params.sampler['module'], params.sampler['name']
     sampler_params = params.sampler['params']
+
+    # Create objects
+    dataset = dataset(**dataset_params)
     sampler = None
     if params.sampler['name'] is not None:
         sampler = instantiate(sampler_module, sampler_name)
         sampler = sampler(dataset, **sampler_params)
-
-    # Create objects
-    dataset = dataset(**dataset_params)
     algorithm_params.update({'model': model, 'dataset': dataset})
     algorithm = algorithm(**algorithm_params)
     optimizer = optimizer(algorithm.model.parameters(), lr=1e-2)
