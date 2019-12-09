@@ -71,10 +71,10 @@ class LocalitySampler(Sampler):
     def __iter__(self):
         # Get total number of samples in the dataset and sample primary units without replacement.
         n = len(self.data_source)
-        primary_units = np.random.choice(n, self.psu, replace=False)
+        primary_units = np.random.choice(n, self.psu, replace=True)
 
         # Sample secondary units with replacement
-        secondary_units = np.random.choice(self.neighbors, (self.psu, self.ssu), replace=True)
+        secondary_units = np.random.choice(self.neighbors, (self.psu, self.ssu), replace=False)
 
         # Modify sampled indices to generate (row, column) pairs to extract from neighbor map.
         primary_units = primary_units.repeat(self.ssu)
