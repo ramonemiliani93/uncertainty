@@ -31,48 +31,52 @@ class DeepEnsembles(UncertaintyAlgorithm):
         self._current_it = 0
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
-        # Sample one model from the ensemble (workaround to the fact that models should be trained in parallel with
-        # different data order, will take longer to converge to same point.)
-        index = np.random.randint(0, self.num_models)
-        mean_model = self.mean[index]
-        log_variance_model = self.log_variance[index]
-
         # Extract data and set data gradient to true for use in th FGSA
         data, target, probability = args
 
         if self.adversarial:
             data.requires_grad = True
 
-        # Extract mean and variance from prediction
-        predictive_mean = mean_model(data)
-        predictive_log_variance = log_variance_model(data)
+        # Iterate through each model and sum nll
+        nll = 0
 
-        # Calculate the loss
-        if self._current_it < self.warm_start_it:
-            nll = self.calculate_nll(target, predictive_mean, (torch.ones_like(predictive_mean) * 0.001).log())
-        else:
-            nll = self.calculate_nll(target, predictive_mean, predictive_log_variance)
+        for index in range(0, self.num_models):
+            mean_model = self.mean[index]
+            log_variance_model = self.log_variance[index]
 
-        # If adversarial training enabled generate sample
-        if self.adversarial:  # TODO
-            # Calculate gradients of model in backward pass
-            nll.backward()
+            # Extract mean and variance from prediction
+            predictive_mean = mean_model(data)
+            predictive_log_variance = log_variance_model(data)
 
-            # Collect data gradients
-            data_grad = data.grad.data
+            # Calculate the loss
+            if self._current_it < self.warm_start_it:
+                nll += self.calculate_nll(target, predictive_mean, (torch.ones_like(predictive_mean) * 0.001).log())
+            else:
+                nll += self.calculate_nll(target, predictive_mean, predictive_log_variance)
 
-            # Call FGSM Attack
-            perturbed_data = self.fgsm_attack(data, data_grad)
-            
-            # Forward pass
-            prediction = model(perturbed_data)
-            mean = prediction[:, 0::2]
-            variance = prediction[:, 1::2]
-            
-            # Add to loss
-            nll += self.calculate_nll(target, mean, predictive_log_variance)
-            
-        return nll
+            # If adversarial training enabled generate sample
+            # if self.adversarial:  # TODO
+            #     # Calculate gradients of model in backward pass
+            #     nll.backward()
+            #
+            #     # Collect data gradients
+            #     data_grad = data.grad.data
+            #
+            #     # Call FGSM Attack
+            #     perturbed_data = self.fgsm_attack(data, data_grad)
+            #
+            #     # Forward pass
+            #     prediction = model(perturbed_data)
+            #     mean = prediction[:, 0::2]
+            #     variance = prediction[:, 1::2]
+            #
+            #     # Add to loss
+            #     nll += self.calculate_nll(target, mean, predictive_log_variance)
+
+        # Update current iteration
+        self._current_it += 1
+
+        return nll / self.num_models
 
     def predict_with_uncertainty(self, *args, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
         # Set model to evaluation
@@ -126,14 +130,11 @@ if __name__ == '__main__':
     import numpy as np
     from torch.optim import Adam
     from torch.utils.data import DataLoader
-    from matplotlib import pyplot as plt
-    from matplotlib.patches import Patch
-    from matplotlib.lines import Line2D
 
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
 
-    params = {'num_models': 1, 'eps': 0.01, 'adversarial': False, 'model': MLP, 'warm_start_it': 15000}
+    params = {'num_models': 5, 'eps': 0.01, 'adversarial': False, 'model': MLP, 'warm_start_it': 5000}
     algorithm = DeepEnsembles(**params)
     kwargs = {'num_samples': 500, 'domain': (0, 10)}
     train_loader = DataLoader(SineDataset(**kwargs), batch_size=500)
@@ -147,7 +148,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            loss = algorithm.loss(*data, warm_start_it=50000, it=epoch)
+            loss = algorithm.loss(*data)
             loss.backward()
             optimizer.step()
 
@@ -161,5 +162,5 @@ if __name__ == '__main__':
     x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
     mean, var = algorithm.predict_with_uncertainty(x_tensor)
-    std = np.sqrt(var)
-    plot_toy_uncertainty(x, mean, std, train_loader)
+    std = np.sqrt(var.squeeze())
+    plot_toy_uncertainty(x, mean.squeeze(), std, train_loader)
