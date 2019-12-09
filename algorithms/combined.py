@@ -5,6 +5,7 @@ import torch
 from torch import nn
 from torch.nn.functional import softplus
 
+from algorithms import DeepEnsembles
 from algorithms.base import UncertaintyAlgorithm
 from utils import plot_toy_uncertainty
 

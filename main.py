@@ -70,27 +70,21 @@ if __name__ == '__main__':
 
     # Instantiate algorithm
     algorithm_module, algorithm_name = params.algorithm['module'], params.algorithm['name']
-    algorithm_params = params.algorithm['params']
-
     algorithm = instantiate(algorithm_module, algorithm_name)
+    algorithm_params = params.algorithm['params']
 
     # Instantiate model
     model_module, model_name = params.model['module'], params.model['name']
     model = instantiate(model_module, model_name)
 
-    algorithm_params.update({'model': model})
-    algorithm = algorithm(**algorithm_params)
-
     # Instantiate optimizer
     optimizer_module, optimizer_name = params.optimizer['module'], params.optimizer['name']
     optimizer = instantiate(optimizer_module, optimizer_name)
-    optimizer = optimizer(algorithm.model.parameters(), lr=1e-2)
 
     # Instantiate dataset
     dataset_module, dataset_name = params.dataset['module'], params.dataset['name']
-    dataset_params = params.dataset['params']
     dataset = instantiate(dataset_module, dataset_name)
-    dataset = dataset(**dataset_params)
+    dataset_params = params.dataset['params']
 
     # Instantiate sampler
     sampler_module, sampler_name = params.sampler['module'], params.sampler['name']
@@ -100,6 +94,11 @@ if __name__ == '__main__':
         sampler = instantiate(sampler_module, sampler_name)
         sampler = sampler(dataset, **sampler_params)
 
+    # Create objects
+    dataset = dataset(**dataset_params)
+    algorithm_params.update({'model': model, 'dataset': dataset})
+    algorithm = algorithm(**algorithm_params)
+    optimizer = optimizer(algorithm.model.parameters(), lr=1e-2)
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))
