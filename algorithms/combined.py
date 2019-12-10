@@ -8,6 +8,7 @@ from torch.nn.functional import softplus
 
 from algorithms import DeepEnsembles
 from algorithms.base import UncertaintyAlgorithm
+from helpers.functional import ScaledTranslatedSigmoid
 from utils import plot_toy_uncertainty
 
 
@@ -17,8 +18,9 @@ class Combined(UncertaintyAlgorithm):
         super(Combined, self).__init__(**kwargs)
 
         # Algorithm parameters
-        self.init_gamma: int = 'init_gamma'
-        self.inducing_points: float = 'inducing_points'
+        self.init_gamma: float = 'init_gamma'
+        self.a: float = 'a'
+        self.num_inducing_points: float = 'num_inducing_points'
         self.eta: float = 'eta'
         self.switch_modulo: int = 'switch_modulo'
         self.warm_start_it: int = 'warm_start_it'
@@ -28,17 +30,19 @@ class Combined(UncertaintyAlgorithm):
         self.mean = model(**kwargs)
         self.alpha = model(**kwargs)
         self.beta = model(**kwargs)
-        # self.gamma = nn.Parameter(torch.tensor(self.init_gamma))
+        self.st_sigmoid = ScaledTranslatedSigmoid(self.init_gamma, self.a)
         self.model = nn.ModuleDict({
             'mean': self.mean,
             'alpha': self.alpha,
             'beta': self.beta,
-            # 'gamma': self.gamma
+            'st_sigmoid': self.st_sigmoid
         })
 
         # Extract dataset and use inducing points to generate clusters
-        # dataset = kwargs.get('dataset')
-        # _ = [dataset[index][0] for index in range(len(dataset))]
+        dataset = kwargs.get('dataset')
+        x_train = np.stack([dataset[index][0].numpy() for index in range(len(dataset))])
+        k_means = KMeans(n_clusters=min(self.num_inducing_points, len(x_train))).fit(x_train)
+        self.inducing_points = torch.tensor(k_means.cluster_centers_)
 
         # Reserved params
         self._current_it = 0
@@ -59,6 +63,8 @@ class Combined(UncertaintyAlgorithm):
             alpha = softplus(self.alpha(data))
             beta = softplus(self.beta(data))
 
+        # Bound the ratio of alpha and beta when out of distribution
+        delta = torch.min(0)
         nll = self.reparametrized_nll_student_t(target, mean, alpha / beta, 2 * alpha)
         weighted_nll = (nll / probability).mean()
 
@@ -107,17 +113,20 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
+
+    kwargs = {'num_samples': 500, 'domain': (0, 10)}
+    dataset = SineDataset(**kwargs)
     params = {'init_gamma': 1.5,
-              'inducing_points': 500,
+              'a': -6.9077,
+              'num_inducing_points': 500,
               'eta': 3.5 ** 2,
               'switch_modulo': 2,
               'model': MLP,
-              'warm_start_it': 25000
+              'warm_start_it': 25000,
+              'dataset': dataset
               }
 
     algorithm = Combined(**params)
-    kwargs = {'num_samples': 500, 'domain': (0, 10)}
-    dataset = SineDataset(**kwargs)
     train_loader = DataLoader(dataset, batch_size=500, sampler=LocalitySampler(dataset, neighbors=30, psu=5, ssu=25))
     optimizer = Adam([
         {'params': algorithm.mean.parameters(), 'lr': 1e-2},
