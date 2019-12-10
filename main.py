@@ -37,8 +37,8 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
         evaluator.run(train_loader)
         metrics = evaluator.state.metrics
         avg_mse = metrics['loss']
-        # print("Training Results - Epoch: {}   Avg loss: {:.2f}"
-        #      .format(engine.state.epoch, avg_mse))
+        print("Training Results - Epoch: {}   Avg loss: {:.2f}"
+              .format(engine.state.epoch, avg_mse))
         writer.add_scalar("training/avg_loss", avg_mse, engine.state.epoch)
 
     @trainer.on(Events.EPOCH_COMPLETED)
