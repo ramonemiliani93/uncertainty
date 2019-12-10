@@ -1,4 +1,5 @@
 from typing import Tuple
+from math import pi
 
 from sklearn.cluster import KMeans
 import torch
@@ -58,8 +59,8 @@ class Combined(UncertaintyAlgorithm):
             alpha = softplus(self.alpha(data))
             beta = softplus(self.beta(data))
 
-        nll = self.calculate_nll_student_t(target, mean, alpha, beta)
-        weighted_nll = (nll * probability).mean()
+        nll = self.reparametrized_nll_student_t(target, mean, alpha / beta, 2 * alpha)
+        weighted_nll = (nll / probability).mean()
 
         # Update current iteration
         self._current_it += 1
@@ -75,11 +76,12 @@ class Combined(UncertaintyAlgorithm):
         # Sample multiple times from the ensemble of models
         with torch.no_grad():
             mean = self.mean(args[0])
-            alpha = self.alpha(args[0])
-            beta = self.alpha(args[0])
+            alpha = softplus(self.alpha(args[0]))
+            beta = softplus(self.beta(args[0]))
             variance = beta / alpha
+            std = variance.sqrt()
 
-        return mean, variance
+        return mean, std
 
     @staticmethod
     def calculate_nll_student_t(target: torch.Tensor, mean: torch.Tensor, alpha: torch.Tensor, beta: torch.Tensor):
@@ -90,15 +92,19 @@ class Combined(UncertaintyAlgorithm):
 
         return nll
 
+    @staticmethod
+    def reparametrized_nll_student_t(target: torch.Tensor, mean: torch.Tensor, lamda: torch.Tensor, nu: torch.Tensor):
+        mse = (target - mean) ** 2
+        nll = -(nu / 2 + 0.5).lgamma() + (nu / 2).lgamma() - 0.5 * lamda.log() + 0.5 * (pi * nu).log() + (nu / 2 + 0.5) * (1 + lamda * mse / nu).log()
+
+        return nll
 
 if __name__ == '__main__':
     import numpy as np
     from torch.optim import Adam
     from torch.utils.data import DataLoader
-    from matplotlib import pyplot as plt
-    from matplotlib.patches import Patch
-    from matplotlib.lines import Line2D
-
+    from data_loader.samplers import LocalitySampler
+    import matplotlib.pyplot as plt
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
     params = {'init_gamma': 1.5,
@@ -106,15 +112,20 @@ if __name__ == '__main__':
               'eta': 3.5 ** 2,
               'switch_modulo': 2,
               'model': MLP,
-              'warm_start_it': 0
+              'warm_start_it': 25000
               }
 
     algorithm = Combined(**params)
     kwargs = {'num_samples': 500, 'domain': (0, 10)}
-    train_loader = DataLoader(SineDataset(**kwargs), batch_size=500)
-    optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
+    dataset = SineDataset(**kwargs)
+    train_loader = DataLoader(dataset, batch_size=500, sampler=LocalitySampler(dataset, neighbors=30, psu=5, ssu=25))
+    optimizer = Adam([
+        {'params': algorithm.mean.parameters(), 'lr': 1e-2},
+        {'params': algorithm.alpha.parameters(), 'lr': 1e-2},
+        {'params': algorithm.beta.parameters(), 'lr': 1e-2}
+    ], lr=1e-4, weight_decay=0)
 
-    for epoch in range(10000):  # loop over the dataset multiple times
+    for epoch in range(50000):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(train_loader, 0):
@@ -135,6 +146,14 @@ if __name__ == '__main__':
 
     x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
-    mean, var = algorithm.predict_with_uncertainty(x_tensor)
-    std = np.sqrt(var.squeeze())
-    plot_toy_uncertainty(x, mean.squeeze(), std, train_loader)
+    mean, std = algorithm.predict_with_uncertainty(x_tensor)
+    plot_toy_uncertainty(x, mean.squeeze(), std.squeeze(), train_loader)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    x = np.linspace(-4, 14, 5000)
+    true_std = 0.3 * ((1 + x ** 2) ** 0.5)
+    ax.plot(x, true_std, label='True std')
+    ax.plot(x, std.squeeze())
+    plt.title('plots')
+    plt.show()
