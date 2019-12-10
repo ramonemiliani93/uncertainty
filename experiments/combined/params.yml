@@ -4,8 +4,8 @@ algorithm:
   params:
     num_models: 1
     init_gamma: 0.01
-    inducing_points: False
-    warm_start_it: 0
+    inducing_points: 500
+    warm_start_it: 25000
     eta: 3.5**2
     switch_modulo: 2
 
@@ -29,12 +29,12 @@ sampler:
   module: data_loader
   name: LocalitySampler
   params:
-    neighbors: 50
-    ssu: 3
-    psu: 40
+    neighbors: 30
+    ssu: 25
+    psu: 5
 
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 50000
   save_summary_steps: 1
-  learning_rate: 0.001 # ?
+  lr: 1e-2 # ?

@@ -63,7 +63,8 @@ class Combined(UncertaintyAlgorithm):
         weighted_nll = (nll / probability).mean()
 
         # Update current iteration
-        self._current_it += 1
+        if self.training:
+            self._current_it += 1
 
         return weighted_nll
 

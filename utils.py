@@ -79,6 +79,7 @@ def create_train_engine(algorithm, optimizer,
 
     def _update(engine, batch):
         algorithm.model.train()
+        algorithm.training = True
         optimizer.zero_grad()
         batch = prepare_batch(batch, device=device, non_blocking=non_blocking)
         loss = algorithm.loss(*batch)
@@ -100,6 +101,7 @@ def create_supervised_evaluator(algorithm, metrics=None,
 
     def _inference(engine, batch):
         algorithm.model.eval()
+        algorithm.training = False
         with torch.no_grad():
             batch = prepare_batch(batch, device=device, non_blocking=non_blocking)
             # TODO FIX THIS ASAP

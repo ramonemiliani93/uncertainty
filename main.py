@@ -28,8 +28,8 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
     @trainer.on(Events.ITERATION_COMPLETED(every=log_interval))
     def log_training_loss(engine):
-        print("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
-              "".format(engine.state.epoch, engine.state.iteration, len(train_loader), engine.state.output))
+        # print("Epoch[{}] Iteration[{}/{}] Loss: {:.2f}"
+        #      "".format(engine.state.epoch, engine.state.iteration, len(train_loader), engine.state.output))
         writer.add_scalar("training/loss", engine.state.output, engine.state.iteration)
 
     @trainer.on(Events.EPOCH_COMPLETED)
@@ -37,8 +37,8 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
         evaluator.run(train_loader)
         metrics = evaluator.state.metrics
         avg_mse = metrics['loss']
-        print("Training Results - Epoch: {}   Avg loss: {:.2f}"
-              .format(engine.state.epoch, avg_mse))
+        # print("Training Results - Epoch: {}   Avg loss: {:.2f}"
+        #      .format(engine.state.epoch, avg_mse))
         writer.add_scalar("training/avg_loss", avg_mse, engine.state.epoch)
 
     @trainer.on(Events.EPOCH_COMPLETED)
@@ -46,8 +46,8 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
         evaluator.run(val_loader)
         metrics = evaluator.state.metrics
         avg_mse = metrics['loss']
-        print("Validation Results - Epoch: {}  Avg loss: {:.2f}"
-              .format(engine.state.epoch, avg_mse))
+        # print("Validation Results - Epoch: {}  Avg loss: {:.2f}"
+        #      .format(engine.state.epoch, avg_mse))
         writer.add_scalar("validation/avg_loss", avg_mse, engine.state.epoch)
 
     # kick everything off
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         sampler = sampler(dataset, **sampler_params)
     algorithm_params.update({'model': model, 'dataset': dataset})
     algorithm = algorithm(**algorithm_params)
-    optimizer = optimizer(algorithm.model.parameters(), lr=1e-2)
+    optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['lr'])
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))
