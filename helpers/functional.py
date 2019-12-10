@@ -1,4 +1,6 @@
+import torch
 from torch import nn
+from torch.nn.functional import sigmoid
 
 
 def enable_dropout(model: nn.Module):
@@ -6,3 +8,14 @@ def enable_dropout(model: nn.Module):
     for m in model.modules():
         if m.__class__.__name__.startswith('Dropout'):
             m.train()
+
+
+class ScaledTranslatedSigmoid(nn.Module):
+    def __init__(self, init_gamma, a):
+        super(ScaledTranslatedSigmoid, self).__init__()
+        self.gamma = nn.Parameter(torch.tensor(init_gamma))
+        self.a = a
+
+    def forward(self, x) -> torch.Tensor:
+        return sigmoid(x / self.gamma + self.a)
+
