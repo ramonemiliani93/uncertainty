@@ -98,7 +98,7 @@ if __name__ == '__main__':
         sampler = sampler(dataset, **sampler_params)
     algorithm_params.update({'model': model, 'dataset': dataset})
     algorithm = algorithm(**algorithm_params)
-    optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['lr'])
+    optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))

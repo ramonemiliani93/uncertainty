@@ -4,10 +4,11 @@ algorithm:
   params:
     num_models: 1
     init_gamma: 0.01
-    inducing_points: 500
+    num_inducing_points: 500
     warm_start_it: 25000
     eta: 3.5**2
     switch_modulo: 2
+    a: -6.9077,
 
 model:
   module: models
@@ -37,4 +38,4 @@ parameters:
   batch_size: 500
   num_epochs: 50000
   save_summary_steps: 1
-  lr: 1e-2 # ?
+  learning_rate: 0.001 # ?

@@ -1,15 +1,20 @@
 from typing import Tuple
 from math import pi
-
 from sklearn.cluster import KMeans
 import torch
 from torch import nn
 from torch.nn.functional import softplus
-
 from algorithms import DeepEnsembles
 from algorithms.base import UncertaintyAlgorithm
 from helpers.functional import ScaledTranslatedSigmoid
 from utils import plot_toy_uncertainty
+import numpy as np
+from torch.optim import Adam
+from torch.utils.data import DataLoader
+from data_loader.samplers import LocalitySampler
+import matplotlib.pyplot as plt
+from data_loader.datasets import SineDataset
+from models.mlp import MLP
 
 
 class Combined(UncertaintyAlgorithm):
@@ -64,7 +69,7 @@ class Combined(UncertaintyAlgorithm):
             beta = softplus(self.beta(data))
 
         # Bound the ratio of alpha and beta when out of distribution
-        delta = torch.min(0)
+        # delta = torch.min(0)
         nll = self.reparametrized_nll_student_t(target, mean, alpha / beta, 2 * alpha)
         weighted_nll = (nll / probability).mean()
 
@@ -106,14 +111,8 @@ class Combined(UncertaintyAlgorithm):
 
         return nll
 
+
 if __name__ == '__main__':
-    import numpy as np
-    from torch.optim import Adam
-    from torch.utils.data import DataLoader
-    from data_loader.samplers import LocalitySampler
-    import matplotlib.pyplot as plt
-    from data_loader.datasets import SineDataset
-    from models.mlp import MLP
 
     kwargs = {'num_samples': 500, 'domain': (0, 10)}
     dataset = SineDataset(**kwargs)
@@ -134,6 +133,7 @@ if __name__ == '__main__':
         {'params': algorithm.alpha.parameters(), 'lr': 1e-2},
         {'params': algorithm.beta.parameters(), 'lr': 1e-2}
     ], lr=1e-4, weight_decay=0)
+    algorithm.training = True
 
     for epoch in range(50000):  # loop over the dataset multiple times
 
