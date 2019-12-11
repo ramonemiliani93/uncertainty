@@ -8,3 +8,4 @@ ignite==1.1.0
 PyYAML
 scikit_learn==0.22
 tensorboard
+numpyro==0.2.1
