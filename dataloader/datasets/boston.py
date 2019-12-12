@@ -4,25 +4,41 @@ import torch
 import numpy as np
 from annoy import AnnoyIndex
 from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
 
 from .base import UncertaintyDataset
 
 
 class BostonDataset(UncertaintyDataset):
-    def __init__(self):
+    def __init__(self, split="train"):
         super(BostonDataset, self).__init__()
 
         boston = load_boston()
-        self.features = boston.data
-        self.targets = boston.target
+        data = boston.data
+        targets = boston.target
+
+        features_train, features_test, targets_train, targets_test = train_test_split(data, targets, test_size=0.2)
+
+        if split == "train":
+            self.features = features_train
+            self.targets = targets_train
+
+        else:
+            self.features = features_test
+            self.targets = targets_test
 
         assert len(self.features) == len(self.targets)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         sample = torch.tensor(self.features[idx])
         target = torch.tensor(self.targets[idx])
 
-        return sample, target
+        if self.probabilities is None:
+            probability = torch.tensor([1])
+        else:
+            probability = torch.tensor(self.probabilities[idx])
+
+        return sample, target, probability
 
     def __len__(self):
         return len(self.features)

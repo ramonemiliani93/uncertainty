@@ -15,7 +15,7 @@ class MLP(nn.Module):
         })
 
         # Initialization parameters
-        self.num_inputs = kwargs.get('num_inputs', 1)
+        self.num_inputs = kwargs.get('num_inputs', 13)
         self.num_outputs = kwargs.get('num_outputs', 1)
         self.hidden_size = kwargs.get('hidden_size', 50)
         self.activation = kwargs.get('activation', 'sigmoid')
@@ -39,4 +39,4 @@ class MLP(nn.Module):
 
 
 if __name__ == '__main__':
-    mlp = MLP(1, 1, 50,)
+    mlp = MLP()

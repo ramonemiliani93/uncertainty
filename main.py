@@ -60,7 +60,7 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/montecarlo', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/ensembles', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
@@ -88,25 +88,27 @@ if __name__ == '__main__':
     dataset = instantiate(dataset_module, dataset_name)
     dataset_params = params.dataset['params']
 
-    if dataset_params == 'None':
-        dataset = dataset()
+    if dataset_params == 'UCI':
+        dataset_train = dataset()
+        dataset_test = dataset(split="test")
     else:
-        dataset = dataset(**dataset_params)
+        dataset_train = dataset(**dataset_params)
 
     # Instantiate sampler
     sampler_module, sampler_name = params.sampler['module'], params.sampler['name']
     sampler_params = params.sampler['params']
 
-    # Create objects
-    dataset = dataset(**dataset_params)
     sampler = None
     if params.sampler['name'] is not None:
         sampler = instantiate(sampler_module, sampler_name)
         sampler = sampler(dataset, **sampler_params)
+
     algorithm_params.update({'model': model, 'dataset': dataset})
     algorithm = algorithm(**algorithm_params)
+
     optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
-    train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
+    train_loader, _ = get_data_loaders(dataset_train, params.parameters['batch_size'], sampler=sampler)
+
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))
 
@@ -118,10 +120,18 @@ if __name__ == '__main__':
         optimizer, params.parameters['num_epochs'], 10000,
         tensorboard_dir)
 
-    x = np.linspace(-4, 14, 5000)
-    x_tensor = torch.FloatTensor(x).reshape(-1, 1)
-    mean, std = algorithm.predict_with_uncertainty(x_tensor)
-    mean, std = mean.reshape(-1), std.reshape(-1)
+    if dataset_params == "UCI":
+        x_tensor = torch.FloatTensor(dataset_test.features).reshape(-1, dataset_test.features.shape[1])
+        mean, std = algorithm.predict_with_uncertainty(x_tensor)
+        mean, std = mean.reshape(-1), std.reshape(-1)
+        print(mean, std)
+
+    else:
+
+        x = np.linspace(-4, 14, 5000)
+        x_tensor = torch.FloatTensor(x).reshape(-1, 1)
+        mean, std = algorithm.predict_with_uncertainty(x_tensor)
+        mean, std = mean.reshape(-1), std.reshape(-1)
     
     # Start plotting
-    plot_toy_uncertainty(x, mean, std, train_loader)
+    #plot_toy_uncertainty(x, mean, std, train_loader)

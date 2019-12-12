@@ -18,11 +18,16 @@ class WineWhiteDataset(UncertaintyDataset):
 
         assert len(self.features) == len(self.targets)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         sample = torch.tensor(self.features[idx])
         target = torch.tensor(self.targets[idx])
 
-        return sample, target
+        if self.probabilities is None:
+            probability = torch.tensor([1])
+        else:
+            probability = torch.tensor(self.probabilities[idx])
+
+        return sample, target, probability
 
     def __len__(self):
         return len(self.features)
