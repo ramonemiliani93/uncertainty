@@ -11,9 +11,9 @@ from utils import plot_toy_uncertainty
 import numpy as np
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from data_loader.samplers import LocalitySampler
+from dataloader.samplers import LocalitySampler
 import matplotlib.pyplot as plt
-from data_loader.datasets import SineDataset
+from dataloader.datasets import SineDataset
 from models.mlp import MLP
 
 
