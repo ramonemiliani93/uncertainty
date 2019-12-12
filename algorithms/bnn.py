@@ -73,7 +73,7 @@ class BNN(UncertaintyAlgorithm):
         y_train = np.expand_dims(y_train, -1)
         x_test = np.expand_dims(x_test, -1)
 
-        self.y_train = self.scaler.fit_transform(y_train)
+        y_train = self.scaler.fit_transform(y_train)
         # do inference
         rng_key, rng_key_predict = random.split(random.PRNGKey(0))
         samples = self.run_inference(self.args, rng_key, x_train, y_train, d_h)
@@ -86,7 +86,7 @@ class BNN(UncertaintyAlgorithm):
         # compute mean prediction and confidence interval around median
         mean_prediction = np.mean(predictions, axis=0)
         var_prediction = np.var(predictions, axis=0)
-        std = np.sqrt(var_prediction)
+        std_prediction = np.sqrt(var_prediction)
 
         # plot training data
         # plot mean prediction
@@ -132,8 +132,9 @@ if __name__ == '__main__':
     train_loader = DataLoader(dataset, batch_size=500)
     algorithm = BNN(**bnn_params)
     mean_prediction, x_train, y_train, x_test, std_prediction = algorithm.main()
-
+    x_test = np.squeeze(x_test)
     mean = torch.from_numpy(onp.array(mean_prediction)).squeeze()
     std = torch.from_numpy(onp.array(std_prediction)).squeeze()
 
+    plot_toy_uncertainty(x_test, mean, std, train_loader)
     x = 1
