@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import Sampler
 
-from data_loader.datasets import UncertaintyDataset
+from data_loader.datasets.base import UncertaintyDataset
 
 
 class LocalitySampler(Sampler):
@@ -16,7 +16,7 @@ class LocalitySampler(Sampler):
         Output: All secondary sampling units which is a sample of at most m · n points.
                 If a new sample is needed repeat from Step 2
     """
-    def __init__(self, data_source: UncertaintyDataset, neighbors: int, psu: int, ssu, **kwargs):
+    def __init__(self, data_source, **kwargs):
         """
         Args:
             data_source (UncertaintyDataset): Uncertainty dataset with implemented generate_neighbors function.
@@ -26,10 +26,15 @@ class LocalitySampler(Sampler):
         """
         super(LocalitySampler, self).__init__(data_source)
         self.data_source = data_source
-        self.neighbors = neighbors
-        self.psu = psu
-        self.ssu = ssu
-        self.neighbor_map = self.data_source.generate_neighbors(neighbors=self.neighbors, **kwargs)
+        self.neighbors = kwargs.get('neighbors')
+        self.psu = kwargs.get('psu')
+        self.ssu = kwargs.get('ssu')
+
+        # Generate neighbors
+        self.data_source.generate_neighbors(**kwargs)
+
+        # Create probabilities for adjusting the gradients
+        self.data_source.generate_probabilities(self.neighbors, self.psu, self.ssu)
 
     @property
     def neighbors(self) -> int:
@@ -63,33 +68,23 @@ class LocalitySampler(Sampler):
             raise Warning("Number of secondary sampling units greater than number of neighbors.")
         self._ssu = value
 
-    @property
-    def neighbor_map(self) -> np.ndarray:
-        return self._neighbor_map
-
-    @neighbor_map.setter
-    def neighbor_map(self, value: np.ndarray):
-        if not np.issubdtype(value.dtype, np.integer):
-            raise ValueError("Invalid neighbor map provided, must be an array of integers")
-        if len(self.data_source) != len(value):
-            raise ValueError("Invalid neighbor map provided, number of rows should match number of samples in dataset.")
-        self._neighbor_map = value
-
     def __iter__(self):
         # Get total number of samples in the dataset and sample primary units without replacement.
         n = len(self.data_source)
         primary_units = np.random.choice(n, self.psu, replace=False)
 
         # Sample secondary units with replacement
-        secondary_units = np.random.choice(self.neighbors, (self.psu, self.ssu), replace=True)
+
+        secondary_units_list = [np.random.choice(self.neighbors, self.ssu, replace=False) for _ in range(self.psu)]
+        secondary_units = np.stack(secondary_units_list)
 
         # Modify sampled indices to generate (row, column) pairs to extract from neighbor map.
         primary_units = primary_units.repeat(self.ssu)
         secondary_units = secondary_units.ravel()
 
         # Extract neighbors from neighbor map using flat indices from the (row, columns) pairs.
-        flat_indices = np.ravel_multi_index((primary_units, secondary_units), self.neighbor_map.shape)
-        samples = self.neighbor_map.ravel()[flat_indices].tolist()
+        flat_indices = np.ravel_multi_index((primary_units, secondary_units), self.data_source.neighbor_map.shape)
+        samples = self.data_source.neighbor_map.ravel()[flat_indices].tolist()
 
         return iter(samples)
 

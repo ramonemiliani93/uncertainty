@@ -1,0 +1,41 @@
+algorithm:
+  module: algorithms
+  name: Combined
+  params:
+    num_models: 1
+    init_gamma: 0.01
+    num_inducing_points: 500
+    warm_start_it: 25000
+    eta: 3.5**2
+    switch_modulo: 2
+    a: -6.9077,
+
+model:
+  module: models
+  name: MLP
+
+optimizer:
+  module: torch.optim
+  name: Adam
+
+dataset:
+  module: data_loader
+  name: SineDataset
+  params:
+    num_samples: 500
+    domain: !!python/tuple [0, 10]
+  # more if needed
+
+sampler:
+  module: data_loader
+  name: LocalitySampler
+  params:
+    neighbors: 30
+    ssu: 25
+    psu: 5
+
+parameters:
+  batch_size: 500
+  num_epochs: 50000
+  save_summary_steps: 1
+  learning_rate: 0.001 # ?
