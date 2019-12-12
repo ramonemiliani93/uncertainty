@@ -1,4 +1,6 @@
 from data_loader.datasets import SineDataset
+#from datasets import SineDataset
+
 import numpy as np
 import GPy
 
@@ -9,6 +11,7 @@ def GP(X,y,X_test):
     model = GPy.models.GPRegression(X, y, kern, normalizer=True)
     model.optimize()
     print(model)
+
     model.plot()
 
     mu_test, cov_test = model.predict(X_test, full_cov=True)
@@ -21,6 +24,8 @@ def GP(X,y,X_test):
 if __name__ == '__main__':
     dataset = SineDataset(500, (0, 10))
     test_dataset = SineDataset(500, (0, 10))
+
+    #print("hello")
 
     X = []
     X_test = []
@@ -44,7 +49,7 @@ if __name__ == '__main__':
     mu_test, var_test = GP(X,y,X_test)
 
     #print("mu_test: ", mu_test)
-    print("var_test: ", var_test)
+    #print("var_test: ", var_test)
 
     #mu_and_var = list(zip(X_test, mu_test[0]))
     #print("mu_and_var:", mu_and_var)
