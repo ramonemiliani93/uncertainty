@@ -141,7 +141,7 @@ def plot_toy_uncertainty(x_test, mean, std, train_loader):
     ax.legend(legend_elements, ['Ground truth mean', 'Training data', '$\mu(x)$', '$\pm 2\sigma(x)$'])
     plt.title(
         '$y = x \, sin(x) + 0.3 \, \epsilon_1 + 0.3 \, x \, \epsilon_2 \;' + 'where' + '\; \epsilon_1,\,\epsilon_2 \sim \mathcal{N}(0,1)$')
-    plt.xlim(-4, 14)
+    plt.xlim(x_test.min(), x_test.max())
     plt.ylim(-15, 15)
     plt.grid()
     plt.show()

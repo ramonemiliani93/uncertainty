@@ -1,8 +1,11 @@
+#from data_loader.datasets import SineDataset
 from data_loader.datasets import SineDataset
-#from datasets import SineDataset
-
+from torch.utils.data import DataLoader
+from utils import plot_toy_uncertainty
 import numpy as np
 import GPy
+import torch
+
 
 def GP(X,y,X_test):
     dim = X.shape[1]
@@ -12,7 +15,7 @@ def GP(X,y,X_test):
     model.optimize()
     print(model)
 
-    model.plot()
+    # model.plot()
 
     mu_test, cov_test = model.predict(X_test, full_cov=True)
     var_test = np.diag(cov_test).reshape(-1,1)
@@ -23,53 +26,47 @@ def GP(X,y,X_test):
 
 if __name__ == '__main__':
     dataset = SineDataset(500, (0, 10))
-    test_dataset = SineDataset(500, (0, 10))
-
-    #print("hello")
+    #test_dataset = SineDataset(500, (0, 10))
+    train_dataloader = DataLoader(dataset)
 
     X = []
     X_test = []
     y = []
-    y_test = []
+    #y_test = []
 
     for pair in dataset:
         X.append(pair[0].numpy())
         y.append(pair[1].numpy())
 
-    for pair in test_dataset:
-        X_test.append(pair[0].numpy())
-        y_test.append(pair[1].numpy())
-
     X = np.array(X)
     y = np.array(y)
 
-    X_test = np.array(X_test)
-    y_test = np.array(y_test)
+    #for pair in test_dataset:
+        #X_test.append(pair[0].numpy())
+        #y_test.append(pair[1].numpy())
+
+    #l = [[X_test[i], y_test[i]] for i in range(len(X_test))]
+    #l.sort()
+
+    #X_test = [l[i][0] for i in range(len(l))]
+    #X_test = np.array(X_test)
+    #print("X_test.shape: ", X_test.shape)
+    #y_test = [l[i][1] for i in range(len(l))]
+    #y_test = np.array(y_test)
+    #print("y_test.shape: ", y_test.shape)
+
+    X_test = np.linspace(-4,14,5000)
+    X_test = np.expand_dims(X_test, -1)
 
     mu_test, var_test = GP(X,y,X_test)
 
-    #print("mu_test: ", mu_test)
-    #print("var_test: ", var_test)
+    mu_test = torch.from_numpy(mu_test).squeeze()
+    std_test = np.sqrt(var_test)
+    std_test = torch.from_numpy(std_test).squeeze()
 
-    #mu_and_var = list(zip(X_test, mu_test[0]))
-    #print("mu_and_var:", mu_and_var)
-    #print("X_test: ", X_test[0:20])
-    #print("mu_test[0]: ", mu_test[0][0:20])
-    #print("mu_and_var:", mu_and_var)
-    #mu_and_var.sort(key=lambda pair: pair[0])
-    #print(mu_and_var)
+    #print(mu_test)
 
-
-
-
-
-
-
-
-
-
-
-
+    plot_toy_uncertainty(np.squeeze(X_test), mu_test, std_test, train_dataloader)
 
 
 """
