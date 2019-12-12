@@ -18,12 +18,12 @@ class MonteCarloDropout(UncertaintyAlgorithm):
 
         # Create model
         model = kwargs.get('model')
-        self.model = model(**dict(**kwargs))
+        self.model = model(**dict(**kwargs)).float()
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         # Forward pass and MSE loss
         data, target, probability = args
-        prediction = self.model(data)
+        prediction = self.model(data.float())
         mse = mse_loss(target, prediction)
 
         return mse
@@ -55,7 +55,8 @@ if __name__ == '__main__':
     from matplotlib.patches import Patch
     from matplotlib.lines import Line2D
 
-    from data_loader.datasets import SineDataset
+    #from dataloader.datasets import BostonDataset
+    from dataloader.datasets import SineDataset
     from models.mlp import MLP
 
     algorithm = MonteCarloDropout(model=MLP, p=0.05, num_samples=10000)

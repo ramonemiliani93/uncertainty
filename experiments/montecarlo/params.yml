@@ -4,6 +4,12 @@ algorithm:
   params:
     p: 0.05
     num_samples: 10000
+    # num_inputs:
+    # BostonDataset: 13
+    # ConcreteDataset: 7
+    # WineWhiteDataset: 11
+    # WineRedDataset:11
+    num_inputs: 13
 
 model:
   module: models
@@ -16,7 +22,7 @@ optimizer:
 dataset:
   module: dataloader
   name: BostonDataset
-  params: None
+  params: UCI
   #  num_samples: 500
   #  domain: !!python/tuple [0, 10]
   # more if needed
@@ -31,6 +37,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 10
   save_summary_steps: 1
   learning_rate: 0.001 # ?
