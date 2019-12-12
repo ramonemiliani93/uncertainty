@@ -161,6 +161,5 @@ if __name__ == '__main__':
 
     x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
-    mean, var = algorithm.predict_with_uncertainty(x_tensor)
-    std = np.sqrt(var.squeeze())
-    plot_toy_uncertainty(x, mean.squeeze(), std, train_loader)
+    mean, std = algorithm.predict_with_uncertainty(x_tensor)
+    plot_toy_uncertainty(x, mean.squeeze(), std.squeeze(), train_loader)
