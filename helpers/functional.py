@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch.nn.functional import softplus
 
 
 def enable_dropout(model: nn.Module):
@@ -16,5 +17,5 @@ class ScaledTranslatedSigmoid(nn.Module):
         self.a = a
 
     def forward(self, x) -> torch.Tensor:
-        return torch.sigmoid((x + (self.a * self.gamma)) / self.gamma)
+        return torch.sigmoid((x / softplus(self.gamma)) + self.a)
 

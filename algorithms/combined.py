@@ -52,24 +52,23 @@ class Combined(UncertaintyAlgorithm):
         # Unpack input
         data, target, probability = args
 
+        # Find delta using inducing points
+        _, delta = pairwise_distances_argmin_min(self.inducing_points, data, metric='euclidean', axis=0)
+        delta = torch.tensor(delta).unsqueeze(-1) ** 2
+
         # Mean-variance split training
         if self._current_it % self.switch_modulo or self._current_it < self.warm_start_it:
             mean = self.mean(data)
             with torch.no_grad():
                 alpha = softplus(self.alpha(data))
                 beta = softplus(self.beta(data))
+                beta_alpha_ratio = (1 - self.st_sigmoid(delta)) * (beta / alpha) + self.eta * self.st_sigmoid(delta)
         else:
             with torch.no_grad():
                 mean = self.mean(data)
             alpha = softplus(self.alpha(data))
             beta = softplus(self.beta(data))
-
-        # Bound the ratio of alpha and beta when out of distribution
-        _, delta = pairwise_distances_argmin_min(self.inducing_points, data, metric='euclidean', axis=0)
-        delta = torch.tensor(delta).unsqueeze(-1)
-
-        # Apply translated sigmoid
-        beta_alpha_ratio = (1 - self.st_sigmoid(delta)) * (beta / alpha) + self.eta * self.st_sigmoid(delta)
+            beta_alpha_ratio = (1 - self.st_sigmoid(delta)) * (beta / alpha) + self.eta * self.st_sigmoid(delta)
 
         nll = self.reparametrized_nll_student_t(target, mean, 1 / beta_alpha_ratio, 2 * alpha)
         weighted_nll = (nll / probability).mean()
@@ -94,7 +93,7 @@ class Combined(UncertaintyAlgorithm):
 
             # Bound the ratio of alpha and beta when out of distribution
             _, delta = pairwise_distances_argmin_min(self.inducing_points, args[0], metric='euclidean', axis=0)
-            delta = torch.tensor(delta).unsqueeze(-1)
+            delta = torch.tensor(delta).unsqueeze(-1) ** 2
 
             # Apply translated sigmoid
             variance = (1 - self.st_sigmoid(delta)) * (beta / alpha) + self.eta * self.st_sigmoid(delta)
@@ -135,20 +134,20 @@ if __name__ == '__main__':
               'eta': 3.5 ** 2,
               'switch_modulo': 2,
               'model': MLP,
-              'warm_start_it': 8000,
+              'warm_start_it': 50000,
               'dataset': dataset
               }
 
     algorithm = Combined(**params)
-    train_loader = DataLoader(dataset, batch_size=500, sampler=LocalitySampler(dataset, neighbors=50, psu=3, ssu=40))
+    train_loader = DataLoader(dataset, batch_size=500, sampler=LocalitySampler(dataset, neighbors=30, psu=3, ssu=20))
     optimizer = Adam([
         {'params': algorithm.mean.parameters(), 'lr': 1e-2},
         {'params': algorithm.alpha.parameters(), 'lr': 1e-3},
         {'params': algorithm.beta.parameters(), 'lr': 1e-3},
         {'params': algorithm.st_sigmoid.parameters(), 'lr': 1e-3}
-    ], lr=1e-4, weight_decay=0)
+    ], lr=1e-4, weight_decay=1e-6)
 
-    for epoch in range(30000):  # loop over the dataset multiple times
+    for epoch in range(60000):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(train_loader, 0):
@@ -167,14 +166,14 @@ if __name__ == '__main__':
 
     print('Finished Training')
 
-    x = np.linspace(-10, 20, 5000)
+    x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
     mean, std = algorithm.predict_with_uncertainty(x_tensor)
     plot_toy_uncertainty(x, mean.squeeze(), std.squeeze(), train_loader)
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    x = np.linspace(-10, 20, 5000)
+    x = np.linspace(-4, 14, 5000)
     true_std = 0.3 * ((1 + x ** 2) ** 0.5)
     ax.plot(x, true_std, label='True std')
     ax.plot(x, std.squeeze())
