@@ -1,6 +1,8 @@
 import argparse
-import os
+import os, sys
 import os.path as osp
+sys.path.append('/tmp/pycharm_project_307/')
+print(sys.path)
 
 import torch
 import torch.nn
@@ -58,7 +60,7 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/combined', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/montecarlo', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
@@ -84,6 +86,7 @@ if __name__ == '__main__':
     # Instantiate dataset
     dataset_module, dataset_name = params.dataset['module'], params.dataset['name']
     dataset = instantiate(dataset_module, dataset_name)
+    dataset_params = params.dataset['params']
 
     if dataset_params == 'None':
         dataset = dataset()
