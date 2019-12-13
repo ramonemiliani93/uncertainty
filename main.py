@@ -58,7 +58,7 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/combined', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/toy_regression/montecarlo', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
