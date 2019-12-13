@@ -66,6 +66,8 @@ if __name__ == '__main__':
                         training")  # 'best' or 'train'
     args = parser.parse_args()
 
+    np.random.seed(42)
+    torch.random.manual_seed(42)
     yaml_path = os.path.join(args.model_dir, 'params.yml')
     assert os.path.isfile(yaml_path), "No yaml configuration file found at {}".format(yaml_path)
     params = utils.Params(yaml_path)
