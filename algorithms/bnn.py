@@ -40,7 +40,7 @@ class BNN(UncertaintyAlgorithm):
 
     def model(self, x_train, y_train, num_hidden):
         d_x = x_train.shape[1]  # number of features in x
-        d_y = y_train.shape[1]  #
+        d_y = 1  #
         # d_x, d_y = x_train.shape[1], 1
 
         # sample first layer (we put unit normal priors on all weights)
@@ -100,18 +100,18 @@ class BNN(UncertaintyAlgorithm):
 
         return mean_prediction, x_test, std_prediction
 
-    def predict(self, model, rng_key, samples, x_train, d_h):
+    def predict(self, model, rng_key, samples, x_train, num_hidden):
         model = handlers.substitute(handlers.seed(model, rng_key), samples)
         # note that y_train will be sampled in the model because we pass y_train=None here
-        model_trace = handlers.trace(model).get_trace(x_train=x_train, y_train=None, d_h=d_h)
+        model_trace = handlers.trace(model).get_trace(x_train=x_train, y_train=None, num_hidden=num_hidden)
         return model_trace['y_train']['value']
 
-    def run_inference(self, args, rng_key, x_train, y_train, d_h):
+    def run_inference(self, args, rng_key, x_train, y_train, num_hidden):
         if args['num_chains'] > 1:
             rng_key = random.split(rng_key, args['num_chains'])
         kernel = NUTS(self.model)
         mcmc = MCMC(kernel, args['num_warmup'], args['num_samples'], num_chains=args['num_chains'])
-        mcmc.run(rng_key, x_train, y_train, d_h)
+        mcmc.run(rng_key, x_train, y_train, num_hidden)
         return mcmc.get_samples()
 
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
                   'num_data': 500,
                   'num_samples': 2000,
                   'num_warmup': 1000,
-                  'num_hidden': 50,
+                  'num_hidden': 3,
                   'device': 'cpu'}
 
     # dataset params
