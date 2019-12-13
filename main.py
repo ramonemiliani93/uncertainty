@@ -119,9 +119,9 @@ if __name__ == '__main__':
         optimizer, params.parameters['num_epochs'], 10000,
         tensorboard_dir)
 
-    x_tensor = torch.FloatTensor(x).reshape(-1, 1)
+    x_tensor = torch.FloatTensor(x_test).reshape(-1, 1)
     mean, std = algorithm.predict_with_uncertainty(x_tensor)
     mean, std = mean.reshape(-1), std.reshape(-1)
     
     # Start plotting
-    plot_toy_uncertainty(x, mean, std, train_loader)
+    plot_toy_uncertainty(x_test, mean, std, train_loader)

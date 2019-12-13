@@ -21,7 +21,7 @@ import numpy as onp
 
 
 def nonlin(x):
-    return np.tanh(x)
+    return 1.0 / (1 + np.exp(-x))
 
 
 class BNN(UncertaintyAlgorithm):
