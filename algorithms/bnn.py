@@ -33,11 +33,13 @@ class BNN(UncertaintyAlgorithm):
         self.model = model(**kwargs)
         self.args = kwargs
         self.scaler = preprocessing.StandardScaler()
+        x_test = kwargs.get('x_test')
+        if len(x_test.shape) == 1:
+            x_test = np.expand_dims(x_test, -1)
+        self.x_test = x_test
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         x_train, y_train = self.dataset.samples, self.dataset.targets
-        x_test = np.linspace(-4, 14, 5000)
-        x_test = np.expand_dims(x_test, -1)
 
         if len(x_train.shape) == 1:
             x_train = np.expand_dims(x_train, -1)
@@ -53,8 +55,9 @@ class BNN(UncertaintyAlgorithm):
         samples = self.run_inference(self.args, rng_key, x_train, y_train, num_hidden)
 
         # predict Y_test at inputs x_test
+        # this shouldn't be here but I couldn't get it to work otherwise
         vmap_args = (samples, random.split(rng_key_predict, self.args['num_samples'] * self.args['num_chains']))
-        predictions = vmap(lambda samples, rng_key: self.predict(self.bnn_model, rng_key, samples, x_test, num_hidden))(
+        predictions = vmap(lambda samples, rng_key: self.predict(self.bnn_model, rng_key, samples, self.x_test, num_hidden))(
             *vmap_args)
         self.predictions = predictions[..., 0]
 
@@ -106,6 +109,7 @@ class BNN(UncertaintyAlgorithm):
         # observe data
         numpyro.sample("y", dist.Normal(z2, sigma_obs), obs=y)
 
+    # THIS METHOD ONLY RUNS WHEN CALLING THE FILE AS A SCRIPT
     def main(self):
 
         x_train, y_train = self.dataset.samples, self.dataset.targets

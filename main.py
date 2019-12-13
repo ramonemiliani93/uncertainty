@@ -98,7 +98,11 @@ if __name__ == '__main__':
     if params.sampler['name'] is not None:
         sampler = instantiate(sampler_module, sampler_name)
         sampler = sampler(dataset, **sampler_params)
-    algorithm_params.update({'model': model, 'dataset': dataset})
+
+    x_test = np.linspace(-4, 14, 5000)
+    algorithm_params.update({'model': model,
+                             'dataset': dataset,
+                             'x_test': x_test})
     algorithm = algorithm(**algorithm_params)
     optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
@@ -113,7 +117,6 @@ if __name__ == '__main__':
         optimizer, params.parameters['num_epochs'], 10000,
         tensorboard_dir)
 
-    x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
     mean, std = algorithm.predict_with_uncertainty(x_tensor)
     mean, std = mean.reshape(-1), std.reshape(-1)
