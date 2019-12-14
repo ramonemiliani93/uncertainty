@@ -62,8 +62,8 @@ if __name__ == '__main__':
     from matplotlib.patches import Patch
     from matplotlib.lines import Line2D
 
-    #from dataloader.datasets import BostonDataset
-    from dataloader.datasets import SineDataset
+    #from data_loader.datasets import BostonDataset
+    from data_loader.datasets import SineDataset
     from models.mlp import MLP
 
     algorithm = MonteCarloDropout(model=MLP, p=0.05, num_samples=10000)

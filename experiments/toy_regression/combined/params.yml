@@ -19,7 +19,7 @@ optimizer:
   name: Adam
 
 dataset:
-  module: dataloader
+  module: data_loader
   name: SineDataset
   params:
     num_samples: 500
@@ -27,7 +27,7 @@ dataset:
   # more if needed
 
 sampler:
-  module: dataloader
+  module: data_loader
   name: LocalitySampler
   params:
     neighbors: 30

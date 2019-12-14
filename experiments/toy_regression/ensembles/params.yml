@@ -22,7 +22,7 @@ optimizer:
   name: Adam
 
 dataset:
-  module: dataloader
+  module: data_loader
   name: BostonDataset
   params: UCI
   #  num_samples: 500
@@ -30,7 +30,7 @@ dataset:
   # more if needed
 
 sampler:
-  module: dataloader
+  module: data_loader
   name:
   params:
     neighbors: 100

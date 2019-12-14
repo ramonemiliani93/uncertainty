@@ -26,7 +26,8 @@ class BostonDataset(UncertaintyDataset):
         else:
             self.features = features_test
             self.targets = targets_test
-
+        self.features = torch.FloatTensor(self.features)
+        self.targets = torch.FloatTensor(self.targets).unsqueeze(-1)
         assert len(self.features) == len(self.targets)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
