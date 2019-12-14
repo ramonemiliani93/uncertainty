@@ -46,6 +46,13 @@ class MonteCarloDropout(UncertaintyAlgorithm):
 
         return mean, std
 
+    def save(self, path):
+        torch.save(self.model.state_dict(), path)
+
+    def load(self, path):
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
+
 
 if __name__ == '__main__':
     import numpy as np

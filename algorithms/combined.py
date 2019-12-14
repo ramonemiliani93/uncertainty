@@ -101,6 +101,14 @@ class Combined(UncertaintyAlgorithm):
 
         return mean, std
 
+    def save(self, path):
+        # TODO
+        pass
+
+    def load(self, path):
+        # TODO
+        pass
+
     @staticmethod
     def calculate_nll_student_t(target: torch.Tensor, mean: torch.Tensor, alpha: torch.Tensor, beta: torch.Tensor):
         # Function derived on appendix B of the paper " Reliable training and estimation of variance networks" by

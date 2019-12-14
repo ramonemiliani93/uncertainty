@@ -40,3 +40,11 @@ class UncertaintyAlgorithm(ABC):
             prediction (Tuple[torch.Tensor, torch.Tensor]): Mean and std of each measurement.
         """
         pass
+
+    @abstractmethod
+    def save(self, path):
+        pass
+
+    @abstractmethod
+    def load(self, path):
+        pass

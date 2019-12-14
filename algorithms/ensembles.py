@@ -105,6 +105,14 @@ class DeepEnsembles(UncertaintyAlgorithm):
 
         return predictive_mean_model, preditive_std_model
 
+    def save(self, path):
+        # TODO
+        pass
+
+    def load(self, path):
+        # TODO
+        pass
+
     def fgsm_attack(self, data, data_grad):
         # Collect the element-wise sign of the data gradient
         sign_data_grad = data_grad.sign()
