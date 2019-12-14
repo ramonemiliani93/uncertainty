@@ -14,7 +14,7 @@ from utils import create_train_engine, create_supervised_evaluator,\
     get_data_loaders, create_summary_writer, instantiate, plot_toy_uncertainty
 
 
-def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_dir):
+def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_dir, val=False, log=True):
     writer = create_summary_writer(log_dir)
     device = 'cpu'
 
@@ -32,23 +32,25 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
         #      "".format(engine.state.epoch, engine.state.iteration, len(train_loader), engine.state.output))
         writer.add_scalar("training/loss", engine.state.output, engine.state.iteration)
 
-    @trainer.on(Events.EPOCH_COMPLETED)
-    def log_training_results(engine):
-        evaluator.run(train_loader)
-        metrics = evaluator.state.metrics
-        avg_mse = metrics['loss']
-        print("Training Results - Epoch: {}   Avg loss: {:.2f}"
+    if log:
+        @trainer.on(Events.EPOCH_COMPLETED)
+        def log_training_results(engine):
+            evaluator.run(train_loader)
+            metrics = evaluator.state.metrics
+            avg_mse = metrics['loss']
+            print("Training Results - Epoch: {}   Avg loss: {:.2f}"
               .format(engine.state.epoch, avg_mse))
-        writer.add_scalar("training/avg_loss", avg_mse, engine.state.epoch)
+            writer.add_scalar("training/avg_loss", avg_mse, engine.state.epoch)
 
-    @trainer.on(Events.EPOCH_COMPLETED)
-    def log_validation_results(engine):
-        evaluator.run(val_loader)
-        metrics = evaluator.state.metrics
-        avg_mse = metrics['loss']
-        # print("Validation Results - Epoch: {}  Avg loss: {:.2f}"
-        #      .format(engine.state.epoch, avg_mse))
-        writer.add_scalar("validation/avg_loss", avg_mse, engine.state.epoch)
+    if val:
+        @trainer.on(Events.EPOCH_COMPLETED)
+        def log_validation_results(engine):
+            evaluator.run(val_loader)
+            metrics = evaluator.state.metrics
+            avg_mse = metrics['loss']
+            # print("Validation Results - Epoch: {}  Avg loss: {:.2f}"
+            #      .format(engine.state.epoch, avg_mse))
+            writer.add_scalar("validation/avg_loss", avg_mse, engine.state.epoch)
 
     # kick everything off
     trainer.run(train_loader, max_epochs=epochs)
@@ -58,12 +60,14 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/toy_regression/montecarlo', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/toy_regression/bnn', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
     args = parser.parse_args()
 
+    np.random.seed(42)
+    torch.random.manual_seed(42)
     yaml_path = os.path.join(args.model_dir, 'params.yml')
     assert os.path.isfile(yaml_path), "No yaml configuration file found at {}".format(yaml_path)
     params = utils.Params(yaml_path)
@@ -96,7 +100,11 @@ if __name__ == '__main__':
     if params.sampler['name'] is not None:
         sampler = instantiate(sampler_module, sampler_name)
         sampler = sampler(dataset, **sampler_params)
-    algorithm_params.update({'model': model, 'dataset': dataset})
+
+    x_test = np.linspace(-4, 14, 5000)
+    algorithm_params.update({'model': model,
+                             'dataset': dataset,
+                             'x_test': x_test})
     algorithm = algorithm(**algorithm_params)
     optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
@@ -111,10 +119,9 @@ if __name__ == '__main__':
         optimizer, params.parameters['num_epochs'], 10000,
         tensorboard_dir)
 
-    x = np.linspace(-4, 14, 5000)
-    x_tensor = torch.FloatTensor(x).reshape(-1, 1)
+    x_tensor = torch.FloatTensor(x_test).reshape(-1, 1)
     mean, std = algorithm.predict_with_uncertainty(x_tensor)
     mean, std = mean.reshape(-1), std.reshape(-1)
     
     # Start plotting
-    plot_toy_uncertainty(x, mean, std, train_loader)
+    plot_toy_uncertainty(x_test, mean, std, train_loader)
