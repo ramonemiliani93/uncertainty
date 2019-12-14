@@ -38,6 +38,12 @@ class BNN(UncertaintyAlgorithm):
             x_test = np.expand_dims(x_test, -1)
         self.x_test = x_test
 
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass
+
     def loss(self, *args, **kwargs) -> torch.Tensor:
         x_train, y_train = self.dataset.samples, self.dataset.targets
 
