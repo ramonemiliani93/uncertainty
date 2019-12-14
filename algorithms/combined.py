@@ -1,13 +1,11 @@
 from typing import Tuple
 from math import pi
-
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances_argmin_min
 import torch
 from torch import nn
 from torch.nn.functional import softplus
-
-from algorithms import DeepEnsembles
+import numpy as np
 from algorithms.base import UncertaintyAlgorithm
 from helpers.functional import ScaledTranslatedSigmoid
 from utils import plot_toy_uncertainty
@@ -125,8 +123,8 @@ class Combined(UncertaintyAlgorithm):
 
         return nll
 
+
 if __name__ == '__main__':
-    import numpy as np
     from torch.optim import Adam
     from torch.utils.data import DataLoader
     from data_loader.samplers import LocalitySampler

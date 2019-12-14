@@ -6,9 +6,9 @@ algorithm:
     init_gamma: 0.01
     num_inducing_points: 500
     warm_start_it: 25000
-    eta: 3.5**2
+    eta: !!float 12.25 # 3.5 ** 2
     switch_modulo: 2
-    a: -6.9077,
+    a: !!float -6.9077
 
 model:
   module: models
