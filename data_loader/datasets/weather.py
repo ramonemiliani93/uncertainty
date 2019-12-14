@@ -52,7 +52,7 @@ class WeatherDataset(UncertaintyDataset):
     def __init__(self, root='data',
                  variable='max-temp',
                  train=True,
-                 test_size=0.2,
+                 test_size=0,
                  transform=None,
                  target_transform=None,
                  download=True):
