@@ -6,6 +6,12 @@ algorithm:
     eps: 0.01
     adversarial: False
     warm_start_it: 50000
+    # num_inputs:
+    # BostonDataset: 13
+    # ConcreteDataset: 7
+    # WineWhiteDataset: 11
+    # WineRedDataset:11
+    num_inputs: 13
 
 model:
   module: models
@@ -16,12 +22,20 @@ optimizer:
   name: Adam
 
 dataset:
-  module: data_loader
-  name: SineDataset
-  params:
-    num_samples: 500
-    domain: !!python/tuple [0, 10]
+  module: dataloader
+  name: BostonDataset
+  params: UCI
+  #  num_samples: 500
+  #  domain: !!python/tuple [0, 10]
   # more if needed
+
+sampler:
+  module: dataloader
+  name:
+  params:
+    neighbors: 100
+    ssu: 100
+    psu: 100
 
 parameters:
   batch_size: 500

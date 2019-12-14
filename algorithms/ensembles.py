@@ -139,7 +139,7 @@ if __name__ == '__main__':
     from torch.optim import Adam
     from torch.utils.data import DataLoader
 
-    from data_loader.datasets import SineDataset
+    from dataloader.datasets import SineDataset
     from models.mlp import MLP
 
     params = {'num_models': 5, 'eps': 0.01, 'adversarial': False, 'model': MLP, 'warm_start_it': 5000}
