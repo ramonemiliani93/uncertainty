@@ -10,6 +10,7 @@ import numpy as np
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class Params:
@@ -144,4 +145,36 @@ def plot_toy_uncertainty(x_test, mean, std, train_loader):
     plt.xlim(-4, 14)
     plt.ylim(-15, 15)
     plt.grid()
+    plt.show()
+
+
+def plot_toy_weather(X, y, x, y_pred, sigma, mu_true, sigma_true, label, err):
+    sns.set()
+    X = X.numpy()
+    y = y.numpy()
+
+    fig, ax = plt.subplots()
+    fig.canvas.set_window_title(label)
+    ax.plot(X, y, 'k.', markersize=5, label='Observations')
+    ax.plot(x, y_pred, '-', label=label + ' prediction', lw=3)
+
+    ax.fill(np.concatenate([x, x[::-1]]),
+            np.concatenate([y_pred - 1.96 * sigma,
+                            (y_pred + 1.96 * sigma)[::-1]]),
+            alpha=.2, ec='None', label=label + ': 95% confidence interval', c='red')
+
+    ax.plot(X, mu_true - 1.96 * sigma_true, color='g', lw=2)
+    ax.plot(X, mu_true + 1.96 * sigma_true, color='g', lw=2)
+
+    ax.set_xlabel('$x$')
+    ax.set_ylabel('$y$')
+    plt.title("Err=" + str(err), fontsize=20)
+    ax.axis([0, 365, 0, 110])
+    ax.legend()
+
+    for item in ([ax.xaxis.label, ax.yaxis.label] +
+                 ax.get_xticklabels() + ax.get_yticklabels()):
+        item.set_fontsize(15)
+
+    plt.savefig(label + '.pdf', format='pdf', bbox_inches="tight")
     plt.show()
