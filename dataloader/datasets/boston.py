@@ -5,6 +5,7 @@ import numpy as np
 from annoy import AnnoyIndex
 from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 from .base import UncertaintyDataset
 
@@ -18,6 +19,11 @@ class BostonDataset(UncertaintyDataset):
         targets = boston.target
 
         features_train, features_test, targets_train, targets_test = train_test_split(data, targets, test_size=0.2)
+
+        scaler = StandardScaler()
+        scaler.fit(features_train)
+        features_train = scaler.transform(features_train)
+        features_test = scaler.transform(features_test)
 
         if split == "train":
             self.samples = features_train
