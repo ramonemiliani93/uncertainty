@@ -17,7 +17,7 @@ optimizer:
 
 dataset:
   module: data_loader
-  name: SineDataset
+  name: WeatherDataset
   params:
     num_samples: 500
     domain: !!python/tuple [0, 10]
