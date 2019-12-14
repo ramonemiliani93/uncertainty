@@ -19,9 +19,7 @@ dataset:
   module: data_loader
   name: WeatherDataset
   params:
-    num_samples: 500
-    domain: !!python/tuple [0, 10]
-  # more if needed
+    variable: 'max-temp'
 
 sampler:
   module: data_loader
