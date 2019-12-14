@@ -5,7 +5,7 @@ algorithm:
     num_models: 1
     eps: 0.01
     adversarial: False
-    warm_start_it: 400
+    warm_start_it: 500
 
 model:
   module: models
@@ -31,6 +31,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 600
+  num_epochs: 1000
   save_summary_steps: 1
   learning_rate: 0.001 # ?
