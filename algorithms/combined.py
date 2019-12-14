@@ -39,6 +39,7 @@ class Combined(UncertaintyAlgorithm):
 
         # Extract dataset and use inducing points to generate clusters
         dataset = kwargs.get('dataset')
+        self.dataset = dataset
         x_train = np.stack([dataset[index][0].numpy() for index in range(len(dataset))])
         k_means = KMeans(n_clusters=min(self.num_inducing_points, len(x_train))).fit(x_train)
         self.inducing_points = k_means.cluster_centers_

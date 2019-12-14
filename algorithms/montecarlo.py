@@ -3,7 +3,7 @@ from typing import Tuple
 import torch
 from torch.nn.functional import mse_loss
 from algorithms.base import UncertaintyAlgorithm
-
+import numpy as np
 from helpers.functional import enable_dropout
 from utils import plot_toy_uncertainty
 
@@ -19,6 +19,7 @@ class MonteCarloDropout(UncertaintyAlgorithm):
         # Create model
         model = kwargs.get('model')
         self.model = model(**dict(**kwargs)).float()
+        self.dataset = kwargs.get('dataset')
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         # Forward pass and MSE loss
@@ -27,6 +28,13 @@ class MonteCarloDropout(UncertaintyAlgorithm):
         mse = mse_loss(target, prediction)
 
         return mse
+
+    @staticmethod
+    def calculate_nll(target, mean, log_variance):
+        # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
+        log_two_pi_term = (torch.ones_like(mean, dtype=torch.float32) * np.pi * 2).log()
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
+        return nll
 
     def predict_with_uncertainty(self, *args, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
         # Set model to evaluation except dropout layers
@@ -64,14 +72,9 @@ class MonteCarloDropout(UncertaintyAlgorithm):
 
 
 if __name__ == '__main__':
-    import numpy as np
     from torch.optim import Adam
     from torch.utils.data import DataLoader
-    from matplotlib import pyplot as plt
-    from matplotlib.patches import Patch
-    from matplotlib.lines import Line2D
-
-    #from data_loader.datasets import BostonDataset
+    # from data_loader.datasets import BostonDataset
     from data_loader.datasets import SineDataset
     from models.mlp import MLP
 
