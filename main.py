@@ -62,7 +62,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-dir', default='experiments/'
                                                'uci_regression/'
-                                               'boston/nn', help="Directory containing params.yml")
+                                               'boston/montecarlo', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
