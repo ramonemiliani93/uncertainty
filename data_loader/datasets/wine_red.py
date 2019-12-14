@@ -5,16 +5,16 @@ import numpy as np
 import pandas as pd
 from annoy import AnnoyIndex
 
-from .base import UncertaintyDataset
+from data_loader.datasets.base import UncertaintyDataset
 
 
-class ConcreteDataset(UncertaintyDataset):
+class WineRedDataset(UncertaintyDataset):
     def __init__(self):
-        super(ConcreteDataset, self).__init__()
+        super(WineRedDataset, self).__init__()
 
-        concrete = pd.read_excel(r"../data/concrete_data.xls")
-        self.features = concrete.values[:, :-1]
-        self.targets = concrete.values[:, -1:]
+        wine_red = pd.read_csv("../data/winequality_red.csv", sep=';')
+        self.features = wine_red.values[:, :-1]
+        self.targets = wine_red.values[:, -1:]
 
         assert len(self.features) == len(self.targets)
 
@@ -51,3 +51,4 @@ class ConcreteDataset(UncertaintyDataset):
             neighbor_map[i, :] = nearest_neighbors
 
         return neighbor_map.astype(int)
+

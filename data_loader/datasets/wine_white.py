@@ -2,30 +2,19 @@ from typing import Tuple
 
 import torch
 import numpy as np
+import pandas as pd
 from annoy import AnnoyIndex
-from sklearn.datasets import load_boston
-from sklearn.model_selection import train_test_split
 
-from .base import UncertaintyDataset
+from data_loader.datasets.base import UncertaintyDataset
 
 
-class BostonDataset(UncertaintyDataset):
-    def __init__(self, split="train"):
-        super(BostonDataset, self).__init__()
-        
-        boston = load_boston()
-        data = boston.data
-        targets = boston.target
+class WineWhiteDataset(UncertaintyDataset):
+    def __init__(self):
+        super(WineWhiteDataset, self).__init__()
 
-        features_train, features_test, targets_train, targets_test = train_test_split(data, targets, test_size=0.2)
-
-        if split == "train":
-            self.features = features_train
-            self.targets = targets_train
-
-        else:
-            self.features = features_test
-            self.targets = targets_test
+        wine_white = pd.read_csv("../data/winequality_white.csv", sep=';')
+        self.features = wine_white.values[:, :-1]
+        self.targets = wine_white.values[:, -1:]
 
         assert len(self.features) == len(self.targets)
 
@@ -62,3 +51,5 @@ class BostonDataset(UncertaintyDataset):
             neighbor_map[i, :] = nearest_neighbors
 
         return neighbor_map.astype(int)
+
+
