@@ -25,7 +25,7 @@ class Params:
 
     def __init__(self, yml_path):
         with open(yml_path) as f:
-            params = yaml.load(f)
+            params = yaml.load(f,  Loader=yaml.FullLoader)
             self.__dict__.update(params)
 
     def save(self, json_path):

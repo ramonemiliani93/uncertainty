@@ -51,7 +51,7 @@ class SineDataset(UncertaintyDataset):
         sample = torch.tensor([self.samples[item]])
         target = torch.tensor([self.targets[item]])
         if self.probabilities is None:
-            probability = torch.tensor([1])
+            probability = torch.tensor([1], dtype=torch.float32)
         else:
             probability = torch.tensor(self.probabilities[item])
 

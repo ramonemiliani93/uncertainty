@@ -15,11 +15,9 @@ optimizer:
 
 dataset:
   module: data_loader
-  name: SineDataset
+  name: WeatherDataset
   params:
-    num_samples: 500
-    domain: !!python/tuple [0, 10]
-  # more if needed
+    variable: 'max-temp'
 
 sampler:
   module: data_loader
@@ -31,6 +29,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 100000
+  num_epochs: 1000
   save_summary_steps: 1
   learning_rate: 0.001 # ?
