@@ -19,15 +19,15 @@ class BostonDataset(UncertaintyDataset):
 
         features_train, features_test, targets_train, targets_test = train_test_split(data, targets, test_size=0.2)
 
-        if split == "train":
-            self.features = features_train
-            self.targets = targets_train
+        if len(targets_train.shape) == 1:
+            targets_train = np.expand_dims(targets_train, -1)
+            targets_test = np.expand_dims(targets_test, -1)
 
-        else:
-            self.features = features_test
-            self.targets = targets_test
-        self.features = torch.FloatTensor(self.features)
-        self.targets = torch.FloatTensor(self.targets).unsqueeze(-1)
+        self.features = torch.FloatTensor(features_train)
+        self.targets = torch.FloatTensor(targets_train)
+        self.features_test = torch.FloatTensor(features_test)
+        self.targets_test = torch.FloatTensor(targets_test)
+
         assert len(self.features) == len(self.targets)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

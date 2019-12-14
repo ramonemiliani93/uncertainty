@@ -110,7 +110,7 @@ if __name__ == '__main__':
                              'x_test': x_test})
     algorithm_params.update(model_params)
     algorithm = algorithm(**algorithm_params)
-    optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
+    optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'], weight_decay=1e-4)
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
     # Train the model
     logging.info("Starting training for {} epoch(s)".format(params.parameters['num_epochs']))
@@ -122,6 +122,8 @@ if __name__ == '__main__':
     run(algorithm, train_loader, train_loader,
         optimizer, params.parameters['num_epochs'], 10000,
         tensorboard_dir)
+
+    test_ll = algorithm.get_test_ll()
 
     model_path = os.path.join(args.model_dir, 'model.pt')
     algorithm.save(model_path)
