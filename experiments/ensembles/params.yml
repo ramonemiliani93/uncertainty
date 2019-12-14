@@ -6,7 +6,7 @@ algorithm:
     eps: 0.01
     adversarial: False
     warm_start_it: 50000
-    # num_inputs:
+    # num_inputs: (number of features for each UCI datasets)
     # BostonDataset: 13
     # ConcreteDataset: 7
     # WineWhiteDataset: 11
@@ -39,6 +39,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 10
   save_summary_steps: 1
   learning_rate: 0.001 # ?

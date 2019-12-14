@@ -33,8 +33,7 @@ class MLP(nn.Module):
         )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-        output = self.model(inputs)
-
+        output = self.model(inputs.float())
         return output
 
 

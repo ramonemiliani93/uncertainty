@@ -8,7 +8,13 @@ algorithm:
     warm_start_it: 25000
     eta: 3.5**2
     switch_modulo: 2
-    a: -6.9077,
+    a: -6.9077
+    # num_inputs: (number of features for each UCI datasets)
+    # BostonDataset: 13
+    # ConcreteDataset: 7
+    # WineWhiteDataset: 11
+    # WineRedDataset:11
+    num_inputs: 13
 
 model:
   module: models
@@ -20,10 +26,11 @@ optimizer:
 
 dataset:
   module: dataloader
-  name: SineDataset
+  name: BostonDataset
   params:
-    num_samples: 500
-    domain: !!python/tuple [0, 10]
+      UCI
+    #num_samples: 500
+    #domain: !!python/tuple [0, 10]
   # more if needed
 
 sampler:
@@ -36,6 +43,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 50000
+  num_epochs: 10
   save_summary_steps: 1
   learning_rate: 0.001 # ?

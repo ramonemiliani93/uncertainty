@@ -2,9 +2,9 @@ from typing import Tuple
 
 import torch
 from torch import nn
-import numpy as np
+#import numpy as np
 from algorithms.base import UncertaintyAlgorithm
-from utils import plot_toy_uncertainty
+from utils import plot_toy_uncertainty, normal_log_like
 
 
 class DeepEnsembles(UncertaintyAlgorithm):
@@ -20,8 +20,8 @@ class DeepEnsembles(UncertaintyAlgorithm):
 
         # Create models
         model = kwargs.get('model')
-        self.mean = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
-        self.log_variance = nn.ModuleList([model(**kwargs) for _ in range(self.num_models)])
+        self.mean = nn.ModuleList([model(**kwargs).float() for _ in range(self.num_models)])
+        self.log_variance = nn.ModuleList([model(**kwargs).float() for _ in range(self.num_models)])
         self.model = nn.ModuleDict({
             'mean': self.mean,
             'log_variance': self.log_variance
@@ -101,9 +101,9 @@ class DeepEnsembles(UncertaintyAlgorithm):
             # print(predictive_log_variance)
             predictive_variance_model = (torch.exp(predictive_log_variance_ensemble)
                                          + predictive_mean_ensemble ** 2).mean(0) - predictive_mean_model ** 2
-            preditive_std_model = predictive_variance_model.sqrt()
+            predictive_std_model = predictive_variance_model.sqrt()
 
-        return predictive_mean_model, preditive_std_model
+        return predictive_mean_model, predictive_std_model
 
     def fgsm_attack(self, data, data_grad):
         # Collect the element-wise sign of the data gradient

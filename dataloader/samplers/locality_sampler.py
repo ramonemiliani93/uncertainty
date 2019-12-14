@@ -95,7 +95,7 @@ class LocalitySampler(Sampler):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from torch.utils.data import DataLoader
-    from data_loader.datasets import SineDataset
+    from dataloader.datasets import SineDataset
 
     # Create dataset
     dataset = SineDataset(1000, (0, 10))

@@ -7,6 +7,12 @@ algorithm:
     num_chains: 1
     num_data: 500
     num_hidden: 50
+    # num_inputs: (number of features for each UCI datasets)
+    # BostonDataset: 13
+    # ConcreteDataset: 7
+    # WineWhiteDataset: 11
+    # WineRedDataset:11
+    num_inputs: 13
 
 model:
   module: models

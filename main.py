@@ -60,7 +60,7 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/ensembles', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/combined', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
@@ -101,9 +101,9 @@ if __name__ == '__main__':
     sampler = None
     if params.sampler['name'] is not None:
         sampler = instantiate(sampler_module, sampler_name)
-        sampler = sampler(dataset, **sampler_params)
+        sampler = sampler(dataset_train, **sampler_params)
 
-    algorithm_params.update({'model': model, 'dataset': dataset})
+    algorithm_params.update({'model': model, 'dataset': dataset_train})
     algorithm = algorithm(**algorithm_params)
 
     optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
@@ -121,7 +121,7 @@ if __name__ == '__main__':
         tensorboard_dir)
 
     if dataset_params == "UCI":
-        x_tensor = torch.FloatTensor(dataset_test.features).reshape(-1, dataset_test.features.shape[1])
+        x_tensor = torch.FloatTensor(dataset_test.samples).reshape(-1, dataset_test.samples.shape[1])
         mean, std = algorithm.predict_with_uncertainty(x_tensor)
         mean, std = mean.reshape(-1), std.reshape(-1)
         print(mean, std)
@@ -132,6 +132,9 @@ if __name__ == '__main__':
         x_tensor = torch.FloatTensor(x).reshape(-1, 1)
         mean, std = algorithm.predict_with_uncertainty(x_tensor)
         mean, std = mean.reshape(-1), std.reshape(-1)
-    
+
     # Start plotting
-    #plot_toy_uncertainty(x, mean, std, train_loader)
+    if dataset_params == "UCI":
+        pass
+    else:
+        plot_toy_uncertainty(x, mean, std, train_loader)

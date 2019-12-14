@@ -4,22 +4,33 @@ import torch
 import numpy as np
 import pandas as pd
 from annoy import AnnoyIndex
+from sklearn.model_selection import train_test_split
 
 from .base import UncertaintyDataset
 
 
 class ConcreteDataset(UncertaintyDataset):
-    def __init__(self):
+    def __init__(self, split="train"):
         super(ConcreteDataset, self).__init__()
 
         concrete = pd.read_excel(r"../data/concrete_data.xls")
-        self.features = concrete.values[:, :-1]
-        self.targets = concrete.values[:, -1:]
+        data = concrete.values[:, :-1]
+        targets = concrete.values[:, -1:]
 
-        assert len(self.features) == len(self.targets)
+        features_train, features_test, targets_train, targets_test = train_test_split(data, targets, test_size=0.2)
+
+        if split == "train":
+            self.samples = features_train
+            self.targets = targets_train
+
+        else:
+            self.samples = features_test
+            self.targets = targets_test
+
+        assert len(self.samples) == len(self.targets)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        sample = torch.tensor(self.features[idx])
+        sample = torch.tensor(self.samples[idx])
         target = torch.tensor(self.targets[idx])
 
         if self.probabilities is None:
@@ -30,24 +41,24 @@ class ConcreteDataset(UncertaintyDataset):
         return sample, target, probability
 
     def __len__(self):
-        return len(self.features)
+        return len(self.samples)
 
     def generate_neighbors(self, neighbors, **kwargs):
         # Extract parameters if provided in kwargs.
-        dimension = 1  # Length of item vector that will be indexed
+        dimension = 8  # Length of item vector that will be indexed
         metric = kwargs.get('metric', 'euclidean')
         num_trees = kwargs.get('num_trees', 10)
 
         # Build tree with the given data.
         t = AnnoyIndex(dimension, metric)
-        for i in range(self.num_samples):
+        for i in range(self.samples.shape[0]):
             t.add_item(i, [self.samples[i].item()])
         t.build(num_trees)
 
         # Generate neighbor map array.
-        neighbor_map = np.zeros((self.num_samples, neighbors))
-        for i in range(self.num_samples):
+        neighbor_map = np.zeros((self.samples.shape[0], neighbors))
+        for i in range(self.samples.shape[0]):
             nearest_neighbors = t.get_nns_by_item(i, neighbors)
             neighbor_map[i, :] = nearest_neighbors
 
-        return neighbor_map.astype(int)
+        self.neighbor_map = neighbor_map.astype(int)

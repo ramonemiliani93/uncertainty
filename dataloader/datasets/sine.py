@@ -11,7 +11,6 @@ from .base import UncertaintyDataset
 class SineDataset(UncertaintyDataset):
     """ Sine function dataset given by:
         y = x · sin(x) + 0.3 · eps_1 + 0.3 · x · eps_2 , with  eps_1, eps_2 ∼ N(0,1)
-
     """
 
     def __init__(self, num_samples: int, domain: Tuple[float, float]):
