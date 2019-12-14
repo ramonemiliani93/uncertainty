@@ -1,28 +1,11 @@
 from typing import Tuple
-from abc import ABC, abstractmethod
 
 from annoy import AnnoyIndex
 import numpy as np
 import torch
-from torch.utils.data import Dataset
+import matplotlib.pyplot as plt
 
-
-class UncertaintyDataset(Dataset, ABC):
-    """Uncertainty dataset."""
-    def __init__(self):
-        super(UncertaintyDataset, self).__init__()
-
-    @abstractmethod
-    def __getitem__(self, item):
-        pass
-
-    @abstractmethod
-    def __len__(self) -> int:
-        pass
-
-    @abstractmethod
-    def generate_neighbors(self, neighbors: int, **kwargs) -> np.ndarray:
-        pass
+from .base import UncertaintyDataset
 
 
 class SineDataset(UncertaintyDataset):
@@ -31,16 +14,15 @@ class SineDataset(UncertaintyDataset):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, num_samples: int, domain: Tuple[float, float]):
         """
         Args:
             num_samples: Number of samples to draw from the domain of the function.
             domain: X range of the data to be generated.
         """
         super(SineDataset,  self).__init__()
-
-        self.num_samples = kwargs.get('num_samples')
-        self.domain = kwargs.get('domain')
+        self.num_samples = num_samples
+        self.domain = domain
         self.samples = np.random.uniform(*self.domain, self.num_samples)
         self.targets = self.function(self.samples)
 
@@ -65,11 +47,15 @@ class SineDataset(UncertaintyDataset):
             raise ValueError("Invalid domain specified.")
         self._domain = low, high
 
-    def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         sample = torch.tensor([self.samples[item]])
         target = torch.tensor([self.targets[item]])
+        if self.probabilities is None:
+            probability = torch.tensor([1], dtype=torch.float32)
+        else:
+            probability = torch.tensor(self.probabilities[item])
 
-        return sample, target
+        return sample, target, probability
 
     def __len__(self) -> int:
         return self.num_samples
@@ -92,7 +78,7 @@ class SineDataset(UncertaintyDataset):
             nearest_neighbors = t.get_nns_by_item(i, neighbors)
             neighbor_map[i, :] = nearest_neighbors
 
-        return neighbor_map.astype(int)
+        self.neighbor_map = neighbor_map.astype(int)
 
     @staticmethod
     def function(x: np.ndarray) -> np.ndarray:
@@ -104,7 +90,6 @@ class SineDataset(UncertaintyDataset):
 
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
 
     # Create dataset
     dataset = SineDataset(500, (0, 10))

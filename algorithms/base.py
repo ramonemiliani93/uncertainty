@@ -5,6 +5,19 @@ import torch
 
 
 class UncertaintyAlgorithm(ABC):
+    """Base class for uncertainty algorithms"""
+    def __init__(self, **kwargs):
+        self.__dict__['kwargs'] = kwargs
+
+    def __setattr__(self, key, value):
+        """All str attributes are considered parameters to the algorithm"""
+        if isinstance(value, str):
+            if value in self.kwargs:
+                self.__dict__[key] = self.kwargs.get(value)
+            else:
+                raise AttributeError('Necessary parameter {} not defined in configuration file.'.format(value))
+        else:
+            self.__dict__[key] = value
 
     @abstractmethod
     def loss(self, *args, **kwargs) -> torch.Tensor:
@@ -26,4 +39,12 @@ class UncertaintyAlgorithm(ABC):
         Returns:
             prediction (Tuple[torch.Tensor, torch.Tensor]): Mean and std of each measurement.
         """
+        pass
+
+    @abstractmethod
+    def save(self, path):
+        pass
+
+    @abstractmethod
+    def load(self, path):
         pass

@@ -1,10 +1,9 @@
 algorithm:
   module: algorithms
-  name: DeepEnsembles
+  name: MonteCarloDropout
   params:
-    num_models: 1
-    eps: 0.01
-    adversarial: False
+    p: 0.05
+    num_samples: 10000
 
 model:
   module: models
@@ -22,8 +21,16 @@ dataset:
     domain: !!python/tuple [0, 10]
   # more if needed
 
+sampler:
+  module: data_loader
+  name:
+  params:
+    neighbors: 100
+    ssu: 100
+    psu: 100
+
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 100000
   save_summary_steps: 1
   learning_rate: 0.001 # ?

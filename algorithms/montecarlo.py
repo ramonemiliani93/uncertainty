@@ -1,27 +1,28 @@
 from typing import Tuple
-from abc import abstractmethod
 
 import torch
-from torch import nn
 from torch.nn.functional import mse_loss
 from algorithms.base import UncertaintyAlgorithm
+
 from helpers.functional import enable_dropout
+from utils import plot_toy_uncertainty
 
 
 class MonteCarloDropout(UncertaintyAlgorithm):
 
     def __init__(self, **kwargs):
-        self.num_samples = kwargs.get('num_samples')
-        self.p = kwargs.get('p')
+        super(MonteCarloDropout, self).__init__(**kwargs)
+
+        # Algorithm parameters
+        self.num_samples: int = 'num_samples'
+
+        # Create model
         model = kwargs.get('model')
         self.model = model(**dict(**kwargs))
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
-        # Set model to train mode
-        self.model.train()
-
         # Forward pass and MSE loss
-        data, target = args
+        data, target, probability = args
         prediction = self.model(data)
         mse = mse_loss(target, prediction)
 
@@ -40,10 +41,17 @@ class MonteCarloDropout(UncertaintyAlgorithm):
 
             # Calculate statistics of the outputs
             prediction = torch.stack(prediction)
-            mean = prediction.mean(0).squeeze()
-            var = prediction.var(0).squeeze().sqrt() #FIXME
+            mean = prediction.mean(0)
+            std = prediction.var(0).sqrt()
 
-        return mean, var
+        return mean, std
+
+    def save(self, path):
+        torch.save(self.model.state_dict(), path)
+
+    def load(self, path):
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
 
 
 if __name__ == '__main__':
@@ -59,7 +67,7 @@ if __name__ == '__main__':
 
     algorithm = MonteCarloDropout(model=MLP, p=0.05, num_samples=10000)
     dict_params = {'num_samples': 500, 'domain': (0, 10)}
-    train_loader = DataLoader(SineDataset(dict_params), batch_size=500)
+    train_loader = DataLoader(SineDataset(**dict_params), batch_size=500)
     optimizer = Adam(algorithm.model.parameters(), lr=1e-2, weight_decay=0)
 
     for epoch in range(10000):  # loop over the dataset multiple times
@@ -83,32 +91,7 @@ if __name__ == '__main__':
     x = np.linspace(-4, 14, 5000)
     x_tensor = torch.FloatTensor(x).reshape(-1, 1)
     mean, std = algorithm.predict_with_uncertainty(x_tensor)
+    plot_toy_uncertainty(x, mean, std, train_loader)
 
-    # Start plotting
-    fig, ax = plt.subplots()
 
-    ax.plot(x, mean.numpy(), '-', color='black')
-    ax.fill_between(x, mean.numpy() - 2 * std.numpy(), mean.numpy() + 2 * std.numpy(), color='gray', alpha=0.2)
 
-    # Plot real function
-    y = x * np.sin(x)
-    ax.plot(x, y, '--')
-
-    # Plot train data points
-    x_tensor, y_tensor = next(iter(train_loader))
-    x = x_tensor.numpy()
-    y = y_tensor.numpy()
-    ax.scatter(x, y, c='r', s=2)
-
-    # Custom legend
-    legend_elements = [Line2D([0], [0], color='b', lw=1, linestyle='--'),
-                       Line2D([0], [0], marker='o', color='w', markerfacecolor='r', markersize=6),
-                       Line2D([0], [0], color='black', lw=1),
-                       Patch(facecolor='grey', edgecolor='grey', alpha=0.2)]
-    ax.legend(legend_elements, ['Ground truth mean', 'Training data', '$\mu(x)$', '$\pm 2\sigma(x)$'])
-    plt.title('$y = x \, sin(x) + 0.3 \, \epsilon_1 + 0.3 \, x \, \epsilon_2 \;'+ 'where' + '\; \epsilon_1,\,\epsilon_2 \sim \mathcal{N}(0,1)$')
-    plt.xlim(-4, 14)
-    plt.ylim(-15, 15)
-    plt.grid()
-    plt.show()
-    print("Finished plotting")

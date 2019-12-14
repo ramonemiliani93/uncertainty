@@ -1,13 +1,23 @@
 algorithm:
   module: algorithms
-  name: MonteCarloDropout
+  name: BNN
   params:
-    p: 0.05
-    num_samples: 10000
+    num_samples: 2000
+    num_warmup: 1000
+    num_chains: 1
+    num_hidden: 50
 
 model:
   module: models
   name: MLP
+
+sampler:
+  module: data_loader
+  name:
+  params:
+    neighbors: 30
+    ssu: 25
+    psu: 5
 
 optimizer:
   module: torch.optim
@@ -23,6 +33,6 @@ dataset:
 
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 1
   save_summary_steps: 1
   learning_rate: 0.001 # ?
