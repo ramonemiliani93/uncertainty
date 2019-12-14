@@ -14,7 +14,7 @@ model:
     num_inputs: 13
     num_outputs: 1
     hidden_size: 50
-    activation: relu
+    activation: sigmoid
 
 optimizer:
   module: torch.optim
@@ -30,7 +30,7 @@ parameters:
   batch_size: 500
   num_epochs: 10000
   save_summary_steps: 1
-  learning_rate: 0.001 # ?
+  learning_rate: 0.0001 # ?
 
 sampler:
   module: data_loader

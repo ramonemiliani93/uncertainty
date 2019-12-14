@@ -109,6 +109,13 @@ class Combined(UncertaintyAlgorithm):
         pass
 
     @staticmethod
+    def calculate_nll(target, mean, log_variance):
+        # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
+        log_two_pi_term = (torch.ones_like(mean, dtype=torch.float32) * np.pi * 2).log()
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
+        return nll
+
+    @staticmethod
     def calculate_nll_student_t(target: torch.Tensor, mean: torch.Tensor, alpha: torch.Tensor, beta: torch.Tensor):
         # Function derived on appendix B of the paper " Reliable training and estimation of variance networks" by
         # Nicki S. Detlefsen, Martin Jørgensen, and Søren Hauberg.
