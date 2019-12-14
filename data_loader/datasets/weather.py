@@ -53,7 +53,7 @@ class WeatherDataset(UncertaintyDataset):
                  variable='max-temp',
                  train=True,
                  num_years_train=1,
-                 transform=None,
+                 transform=lambda x: x / 366,
                  target_transform=None,
                  download=True):
         super(WeatherDataset, self).__init__()
@@ -83,7 +83,7 @@ class WeatherDataset(UncertaintyDataset):
     def __getitem__(self, sample):
         """
         Args:
-            sample (int): sample number to be rerieved
+            sample (int): sample number to be retrieved
 
         Returns:
             tuple: (image, target) where target is index of the target class.
