@@ -50,7 +50,8 @@ class MonteCarloDropout(UncertaintyAlgorithm):
         torch.save(self.model.state_dict(), path)
 
     def load(self, path):
-        self.model.load_state_dict(torch.load(path))
+        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.model.load_state_dict(torch.load(path, map_location=device))
         self.model.eval()
 
 

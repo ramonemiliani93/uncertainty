@@ -23,6 +23,14 @@ dataset:
     domain: !!python/tuple [0, 10]
   # more if needed
 
+sampler:
+  module: data_loader
+  name:
+  params:
+    neighbors: 100
+    ssu: 100
+    psu: 100
+
 parameters:
   batch_size: 500
   num_epochs: 600
