@@ -1,0 +1,41 @@
+algorithm:
+  module: algorithms
+  name: DeepEnsembles
+  params:
+    num_models: 5
+    eps: 0.01
+    adversarial: False
+    warm_start_it: 5000
+
+model:
+  module: models
+  name: MLP
+  params:
+    num_inputs: 13
+    num_outputs: 1
+    hidden_size: 50
+    activation: relu
+
+optimizer:
+  module: torch.optim
+  name: Adam
+
+dataset:
+  module: data_loader
+  name: BostonDataset
+  params:
+    split: train
+
+parameters:
+  batch_size: 500
+  num_epochs: 10000
+  save_summary_steps: 1
+  learning_rate: 0.001 # ?
+
+sampler:
+  module: data_loader
+  name:
+  params:
+    neighbors: 30
+    ssu: 25
+    psu: 5
