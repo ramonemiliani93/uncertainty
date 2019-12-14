@@ -11,7 +11,8 @@ class MLP(nn.Module):
         # Activations
         self._choices = nn.ModuleDict({
             'relu': nn.ReLU(),
-            'sigmoid': nn.Sigmoid()
+            'sigmoid': nn.Sigmoid(),
+            'lrelu': nn.LeakyReLU(),
         })
 
         # Initialization parameters
