@@ -27,8 +27,7 @@ optimizer:
 dataset:
   module: dataloader
   name: BostonDataset
-  params:
-      UCI
+  params: UCI
     #num_samples: 500
     #domain: !!python/tuple [0, 10]
   # more if needed
@@ -43,6 +42,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 10
+  num_epochs: 50000
   save_summary_steps: 1
   learning_rate: 0.001 # ?

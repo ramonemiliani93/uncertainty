@@ -145,8 +145,3 @@ def plot_toy_uncertainty(x_test, mean, std, train_loader):
     plt.ylim(-15, 15)
     plt.grid()
     plt.show()
-
-
-def normal_log_like(y, mu, sigma):
-    c = -0.5 * np.log(2*np.pi)
-    return c - np.log(sigma) - ((y - mu)**2)/(2(sigma**2))

@@ -46,6 +46,22 @@ class MonteCarloDropout(UncertaintyAlgorithm):
 
         return mean, std
 
+    @staticmethod
+    def calculate_nll(target, mean, log_variance):
+        # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance))).mean()
+
+        return nll
+
+    def get_test_ll(self, y_test, mean_test, std_test):
+
+        #x_test = self.dataset.features_test
+        #y_test = self.dataset.targets_test
+        #mean_test, std_test = self.predict_with_uncertainty(x_test)
+        log_variance_test = (std_test**2).log()
+        ll = -self.calculate_nll(y_test, mean_test, log_variance_test)
+        return ll
+
 
 if __name__ == '__main__':
     import numpy as np
