@@ -36,6 +36,7 @@ def plot_max_temperature(days, mean, std, dataset):
     plt.xlim(0, 366)
     plt.ylim(0, 100)
     plt.grid()
+    plt.savefig('model.pdf', format='pdf', bbox_inches="tight")
     plt.show()
 
 
