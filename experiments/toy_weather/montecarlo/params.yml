@@ -2,12 +2,14 @@ algorithm:
   module: algorithms
   name: MonteCarloDropout
   params:
-    p: 0.05
-    num_samples: 10000
+    p: 0.01
+    num_samples: 1000
 
 model:
   module: models
   name: MLP
+  params:
+    activation: 'lrelu'
 
 optimizer:
   module: torch.optim
@@ -29,6 +31,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 5000
   save_summary_steps: 1
   learning_rate: 0.01 # ?
