@@ -68,7 +68,7 @@ if __name__ == '__main__':
         # days = torch.tensor(np.array(list(range(366))) / 366, dtype=torch.float32).reshape(-1, 1)
         size = (X.max() - X.min()) / 50
         days = np.linspace(X.min() - size, X.max() + size, 500).reshape(-1, 1)
-        days = torch.FloatTensor(days / 366)
+        days = torch.FloatTensor(days)
         mean, std = algorithm.predict_with_uncertainty(days)
 
         days = days.numpy().ravel() * 366
