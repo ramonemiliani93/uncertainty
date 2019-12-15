@@ -1,12 +1,14 @@
 algorithm:
   module: algorithms
-  name: DeepEnsembles
+  name: Combined
   params:
     num_models: 1
-    eps: 0.01
-    adversarial: False
-    warm_start_it: 20000
-    activation: 'lrelu'
+    init_gamma: 0.01
+    num_inducing_points: 500
+    warm_start_it: 25000
+    eta: !!float 12.25 # 3.5 ** 2
+    switch_modulo: 2
+    a: !!float -6.9077
 
 model:
   module: models
@@ -24,14 +26,14 @@ dataset:
 
 sampler:
   module: data_loader
-  name:
+  name: LocalitySampler
   params:
-    neighbors: 100
-    ssu: 100
-    psu: 100
+    neighbors: 30
+    ssu: 25
+    psu: 5
 
 parameters:
   batch_size: 500
-  num_epochs: 30000
+  num_epochs: 50000
   save_summary_steps: 1
   learning_rate: 0.001 # ?

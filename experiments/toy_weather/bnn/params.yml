@@ -1,16 +1,23 @@
 algorithm:
   module: algorithms
-  name: DeepEnsembles
+  name: BNN
   params:
-    num_models: 1
-    eps: 0.01
-    adversarial: False
-    warm_start_it: 20000
-    activation: 'lrelu'
+    num_samples: 2000
+    num_warmup: 1000
+    num_chains: 1
+    num_hidden: 50
 
 model:
   module: models
   name: MLP
+
+sampler:
+  module: data_loader
+  name:
+  params:
+    neighbors: 30
+    ssu: 25
+    psu: 5
 
 optimizer:
   module: torch.optim
@@ -22,16 +29,8 @@ dataset:
   params:
     variable: 'max-temp'
 
-sampler:
-  module: data_loader
-  name:
-  params:
-    neighbors: 100
-    ssu: 100
-    psu: 100
-
 parameters:
   batch_size: 500
-  num_epochs: 30000
+  num_epochs: 100
   save_summary_steps: 1
   learning_rate: 0.001 # ?
