@@ -25,6 +25,7 @@ class SineDataset(UncertaintyDataset):
         self.domain = domain
         self.samples = np.random.uniform(*self.domain, self.num_samples)
         self.targets = self.function(self.samples)
+        self.features_test = np.linspace(-4, 14, 5000)
 
     @property
     def num_samples(self) -> int:

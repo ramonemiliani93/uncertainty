@@ -62,7 +62,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--model-dir', default='experiments/'
                                                'uci_regression/'
-                                               'boston/ensembles', help="Directory containing params.yml")
+                                               'boston/bnn/', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
@@ -104,10 +104,8 @@ if __name__ == '__main__':
         sampler = instantiate(sampler_module, sampler_name)
         sampler = sampler(dataset, **sampler_params)
 
-    x_test = np.linspace(-4, 14, 5000)
     algorithm_params.update({'model': model,
-                             'dataset': dataset,
-                             'x_test': x_test})
+                             'dataset': dataset})
     algorithm_params.update(model_params)
     algorithm = algorithm(**algorithm_params)
     optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'], weight_decay=1e-4)

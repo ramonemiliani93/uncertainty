@@ -5,7 +5,7 @@ import numpy as np
 from annoy import AnnoyIndex
 from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
-
+from sklearn import preprocessing
 from data_loader.datasets.base import UncertaintyDataset
 
 
@@ -16,9 +16,11 @@ class BostonDataset(UncertaintyDataset):
         boston = load_boston()
         data = boston.data
         targets = boston.target
-
+        preprocessor = preprocessing.StandardScaler()
         features_train, features_test, targets_train, targets_test = train_test_split(data, targets, test_size=0.2)
 
+        features_train = preprocessor.fit_transform(features_train)
+        features_test = preprocessor.transform(features_test)
         if len(targets_train.shape) == 1:
             targets_train = np.expand_dims(targets_train, -1)
             targets_test = np.expand_dims(targets_test, -1)

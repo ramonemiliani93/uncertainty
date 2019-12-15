@@ -3,7 +3,7 @@ algorithm:
   name: BNN
   params:
     num_samples: 2000
-    num_warmup: 1000
+    num_warmup: 5000
     num_chains: 1
     num_hidden: 50
 
@@ -11,7 +11,7 @@ model:
   module: models
   name: MLP
   params:
-    num_inputs: 1
+    num_inputs: 13
     num_outputs: 1
     hidden_size: 50
     activation: sigmoid
@@ -30,11 +30,9 @@ optimizer:
 
 dataset:
   module: data_loader
-  name: SineDataset
+  name: BostonDataset
   params:
-    num_samples: 500
-    domain: !!python/tuple [0, 10]
-  # more if needed
+    split: train
 
 parameters:
   batch_size: 500

@@ -33,10 +33,6 @@ class BNN(UncertaintyAlgorithm):
         self.model = model(**kwargs)
         self.args = kwargs
         self.scaler = preprocessing.StandardScaler()
-        x_test = kwargs.get('x_test')
-        if len(x_test.shape) == 1:
-            x_test = np.expand_dims(x_test, -1)
-        self.x_test = x_test
 
     def save(self, path):
         pass
@@ -45,12 +41,15 @@ class BNN(UncertaintyAlgorithm):
         pass
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
-        x_train, y_train = self.dataset.samples, self.dataset.targets
-
+        # here self.dataset.features is a torch tensor. HOWEVER, np is JAX'S version of numpy.
+        x_train, y_train = np.array(self.dataset.features.numpy()), np.array(self.dataset.targets.numpy())  #
+        x_test = np.array(self.dataset.features_test.numpy())
         if len(x_train.shape) == 1:
             x_train = np.expand_dims(x_train, -1)
         if len(y_train.shape) == 1:
             y_train = np.expand_dims(y_train, -1)
+        if len(x_test.shape) == 1:
+            x_test = np.expand_dims(x_test, -1)
 
         num_hidden = self.args['num_hidden']
         # rescale y
@@ -63,7 +62,7 @@ class BNN(UncertaintyAlgorithm):
         # predict Y_test at inputs x_test
         # this shouldn't be here but I couldn't get it to work otherwise
         vmap_args = (samples, random.split(rng_key_predict, self.args['num_samples'] * self.args['num_chains']))
-        predictions = vmap(lambda samples, rng_key: self.predict(self.bnn_model, rng_key, samples, self.x_test, num_hidden))(
+        predictions = vmap(lambda samples, rng_key: self.predict(self.bnn_model, rng_key, samples, x_test, num_hidden))(
             *vmap_args)
         self.predictions = predictions[..., 0]
 
@@ -150,6 +149,24 @@ class BNN(UncertaintyAlgorithm):
         mean_prediction += self.scaler.mean_
 
         return mean_prediction, x_test, std_prediction
+
+    @staticmethod
+    def calculate_nll(target, mean, log_variance):
+        # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
+        log_two_pi_term = (torch.ones_like(mean, dtype=torch.float32) * np.pi * 2).log()
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
+        return nll
+
+    def get_test_ll(self):
+
+        x_test = np.array(self.dataset.features_test.numpy())
+        y_test = np.array(self.dataset.targets_test.numpy())
+        mean_test, std_test = self.predict_with_uncertainty()  # predictions were already computed in the loss method
+        log_variance_test = (std_test**2).log()
+        # mean_test is unscaled so this should be fine
+        y_test = torch.FloatTensor(onp.array(y_test))  # convert y_test to regular numpy array
+        ll = -self.calculate_nll(y_test, mean_test, log_variance_test)
+        return ll
 
     @staticmethod
     def predict(bnn_model, rng_key, samples, x, num_hidden):
