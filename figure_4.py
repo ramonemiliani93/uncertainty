@@ -81,3 +81,4 @@ if __name__ == '__main__':
 
         plot_max_temperature(days, mean, std, dataset, figure_path, err)
         print(model_path)
+        print(err)
