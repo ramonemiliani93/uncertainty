@@ -25,10 +25,10 @@ class BostonDataset(UncertaintyDataset):
             targets_train = np.expand_dims(targets_train, -1)
             targets_test = np.expand_dims(targets_test, -1)
 
-        self.features = torch.FloatTensor(features_train)
-        self.targets = torch.FloatTensor(targets_train)
-        self.features_test = torch.FloatTensor(features_test)
-        self.targets_test = torch.FloatTensor(targets_test)
+        self.features = features_train
+        self.targets = targets_train
+        self.features_test = features_test
+        self.targets_test = targets_test
 
         assert len(self.features) == len(self.targets)
 

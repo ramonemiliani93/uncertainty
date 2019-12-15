@@ -23,9 +23,10 @@ class SineDataset(UncertaintyDataset):
         super(SineDataset,  self).__init__()
         self.num_samples = num_samples
         self.domain = domain
-        self.samples = np.random.uniform(*self.domain, self.num_samples)
-        self.targets = self.function(self.samples)
+        self.features = np.random.uniform(*self.domain, self.num_samples)
+        self.targets = self.function(self.features)
         self.features_test = np.linspace(-4, 14, 5000)
+        self.targets_test = self.function(self.features_test)
 
     @property
     def num_samples(self) -> int:
@@ -49,7 +50,7 @@ class SineDataset(UncertaintyDataset):
         self._domain = low, high
 
     def __getitem__(self, item) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        sample = torch.tensor([self.samples[item]])
+        sample = torch.tensor([self.features[item]])
         target = torch.tensor([self.targets[item]])
         if self.probabilities is None:
             probability = torch.tensor([1], dtype=torch.float32)

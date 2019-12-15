@@ -41,9 +41,9 @@ class BNN(UncertaintyAlgorithm):
         pass
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
-        # here self.dataset.features is a torch tensor. HOWEVER, np is JAX'S version of numpy.
-        x_train, y_train = np.array(self.dataset.features.numpy()), np.array(self.dataset.targets.numpy())  #
-        x_test = np.array(self.dataset.features_test.numpy())
+        # remember that here np is JAX'S version of numpy.
+        x_train, y_train = np.array(self.dataset.features), np.array(self.dataset.targets)  #
+        x_test = np.array(self.dataset.features_test)
         if len(x_train.shape) == 1:
             x_train = np.expand_dims(x_train, -1)
         if len(y_train.shape) == 1:
