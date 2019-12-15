@@ -101,12 +101,20 @@ class Combined(UncertaintyAlgorithm):
         return mean, std
 
     def save(self, path):
-        # TODO
-        pass
+        torch.save({
+            'mean': self.mean.state_dict(),
+            'alpha': self.alpha.state_dict(),
+            'beta': self.beta.state_dict(),
+            'st_sigmoid': self.st_sigmoid.state_dict(),
+        }, path)
 
     def load(self, path):
-        # TODO
-        pass
+        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        checkpoint = torch.load(path, map_location=device)
+        self.mean.load_state_dict(checkpoint['mean'])
+        self.alpha.load_state_dict(checkpoint['alpha'])
+        self.beta.load_state_dict(checkpoint['beta'])
+        self.st_sigmoid.load_state_dict(checkpoint['st_sigmoid'])
 
     @staticmethod
     def calculate_nll_student_t(target: torch.Tensor, mean: torch.Tensor, alpha: torch.Tensor, beta: torch.Tensor):
