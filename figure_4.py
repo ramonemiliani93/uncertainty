@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
     path = os.path.join('experiments', 'toy_weather')
     experiments = {
-        # 'montecarlo': 'MonteCarloDropout',
+        'montecarlo': 'MonteCarloDropout',
         'nn': 'DeepEnsembles'
     }
     for folder, algorithm in experiments.items():
