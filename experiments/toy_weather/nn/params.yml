@@ -1,9 +1,11 @@
 algorithm:
   module: algorithms
-  name: MonteCarloDropout
+  name: DeepEnsembles
   params:
-    p: 0.05
-    num_samples: 10000
+    num_models: 1
+    eps: 0.01
+    adversarial: False
+    warm_start_it: 400
 
 model:
   module: models
@@ -29,6 +31,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 10
+  num_epochs: 600
   save_summary_steps: 1
   learning_rate: 0.001 # ?

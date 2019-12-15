@@ -108,12 +108,21 @@ class DeepEnsembles(UncertaintyAlgorithm):
         return predictive_mean_model, preditive_std_model
 
     def save(self, path):
-        # TODO
-        pass
+        state_dict = {}
+        for index, model in enumerate(self.mean):
+            state_dict['mean_{}'.format(index)] = model.state_dict()
+        for index, model in enumerate(self.log_variance):
+            state_dict['log_variance_{}'.format(index)] = model.state_dict()
+        torch.save(state_dict, path)
 
     def load(self, path):
-        # TODO
-        pass
+        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        checkpoint = torch.load(path, map_location=device)
+        for index, model in enumerate(self.mean):
+            model.load_state_dict(checkpoint['mean_{}'.format(index)])
+        for index, model in enumerate(self.log_variance):
+            model.load_state_dict(checkpoint['log_variance_{}'.format(index)])
+
 
     def fgsm_attack(self, data, data_grad):
         # Collect the element-wise sign of the data gradient

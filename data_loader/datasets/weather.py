@@ -52,8 +52,8 @@ class WeatherDataset(UncertaintyDataset):
     def __init__(self, root='data',
                  variable='max-temp',
                  train=True,
-                 test_size=0,
-                 transform=None,
+                 num_years_train=1,
+                 transform=lambda x: x / 366,
                  target_transform=None,
                  download=True):
         super(WeatherDataset, self).__init__()
@@ -61,7 +61,7 @@ class WeatherDataset(UncertaintyDataset):
         self.root = root
         self.variable = variable
         self.train = train
-        self.test_size = test_size
+        self.num_years_train = num_years_train
         self.transform = transform
         self.target_transform = target_transform
 
@@ -76,13 +76,14 @@ class WeatherDataset(UncertaintyDataset):
             data_file = self.training_file
         else:
             data_file = self.test_file
-        self.data, self.mean_per_day, self.std_per_day = torch.load(os.path.join(self.processed_folder, data_file))
-        self.data = self.data[[self.variables.get(self.variable)]].dropna()  # Get variable of interest and drop NA
+        df_dict, self.mean_per_day, self.std_per_day = torch.load(os.path.join(self.processed_folder, data_file))
+        self.data = df_dict.get(self.variable)
+        self.data = self.data[[self.variables.get(self.variable)]]  # Get variable of interest
 
     def __getitem__(self, sample):
         """
         Args:
-            sample (int): sample number to be rerieved
+            sample (int): sample number to be retrieved
 
         Returns:
             tuple: (image, target) where target is index of the target class.
@@ -145,7 +146,15 @@ class WeatherDataset(UncertaintyDataset):
         std_per_day = df.groupby(df.index.dayofyear).std()
 
         # Split into training and testing
-        train, test = train_test_split(df, random_state=np.random.get_state()[1][0])
+        train, test = {}, {}
+        for variable, column in self.variables.items():
+            df_variable = df[[column, 'dayofyear', 'year']].dropna()
+            train_var = df_variable.groupby('dayofyear', as_index=False).apply(
+                lambda x: x.sample(min(self.num_years_train, len(x)))
+            ).droplevel(0)
+            test_var = df_variable.drop(train_var.index)
+            train[variable] = train_var
+            test[variable] = test_var
 
         # Save data
         training_set = (
@@ -182,6 +191,8 @@ class WeatherDataset(UncertaintyDataset):
                              'SNWD': lambda x: 0 if x is 'T' else x,
                          })
         df.set_index('Date', inplace=True)
+        df['dayofyear'] = df.index.dayofyear
+        df['year'] = df.index.year
 
         return df
 
