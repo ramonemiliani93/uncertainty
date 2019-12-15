@@ -12,7 +12,7 @@ from utils import Params
 from data_loader.datasets import WeatherDataset
 
 
-def plot_max_temperature(days, mean, std, dataset, figure_path):
+def plot_max_temperature(days, mean, std, dataset, figure_path, err):
     fig, ax = plt.subplots()
 
     ax.plot(days, mean, '-', color='black')
@@ -36,6 +36,7 @@ def plot_max_temperature(days, mean, std, dataset, figure_path):
     plt.xlim(0, 366)
     plt.ylim(0, 100)
     plt.grid()
+    plt.title("Err=" + str(err), fontsize=20)
     plt.savefig(figure_path, format='pdf', bbox_inches="tight")
     plt.show()
 
@@ -70,5 +71,9 @@ if __name__ == '__main__':
         mean = mean.numpy().ravel()
         std = std.numpy().ravel()
 
-        plot_max_temperature(days, mean, std, dataset, figure_path)
+        X = torch.tensor(dataset.data.index[:].dayofyear.tolist()).reshape(-1,1)
+        _, Xvar = algorithm.predict_with_uncertainty(X)
+        err = np.mean(np.abs(dataset.std - Xvar)).round(2)
+
+        plot_max_temperature(days, mean, std, dataset, figure_path, err)
         print(model_path)
