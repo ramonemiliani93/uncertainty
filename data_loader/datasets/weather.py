@@ -53,7 +53,7 @@ class WeatherDataset(UncertaintyDataset):
                  variable='max-temp',
                  train=True,
                  num_years_train=1,
-                 transform= None,
+                 transform=lambda x: x / 366,
                  target_transform=None,
                  download=True):
         super(WeatherDataset, self).__init__()

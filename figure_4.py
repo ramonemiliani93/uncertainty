@@ -68,7 +68,7 @@ if __name__ == '__main__':
         # days = torch.tensor(np.array(list(range(366))) / 366, dtype=torch.float32).reshape(-1, 1)
         size = (X.max() - X.min()) / 50
         days = np.linspace(X.min() - size, X.max() + size, 500).reshape(-1, 1)
-        days = torch.FloatTensor(days)
+        days = torch.FloatTensor(days / 366)
         mean, std = algorithm.predict_with_uncertainty(days)
 
         days = days.numpy().ravel() * 366
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 
         sigma = torch.FloatTensor(dataset.std)
         sigma = sigma.reshape(-1, 1).numpy()
-        _, Xvar = algorithm.predict_with_uncertainty(X)
+        _, Xvar = algorithm.predict_with_uncertainty(X / 366)
         Xvar = Xvar.reshape(-1, 1).numpy()
 
         err = np.mean(np.abs(sigma - Xvar)).round(2)
