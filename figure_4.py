@@ -12,7 +12,7 @@ from utils import Params
 from data_loader.datasets import WeatherDataset
 
 
-def plot_max_temperature(days, mean, std, dataset):
+def plot_max_temperature(days, mean, std, dataset, figure_path):
     fig, ax = plt.subplots()
 
     ax.plot(days, mean, '-', color='black')
@@ -36,7 +36,7 @@ def plot_max_temperature(days, mean, std, dataset):
     plt.xlim(0, 366)
     plt.ylim(0, 100)
     plt.grid()
-    plt.savefig('model.pdf', format='pdf', bbox_inches="tight")
+    plt.savefig(figure_path, format='pdf', bbox_inches="tight")
     plt.show()
 
 
@@ -51,6 +51,7 @@ if __name__ == '__main__':
         params_path = os.path.join(path, folder, 'params.yml')
         params = Params(params_path)
 
+        figure_path = os.path.join(path, folder, 'figure.pdf')
         model_path = os.path.join(path, folder, 'model.pt')
         algorithm_class = getattr(algorithms, algorithm)
         algorithm_params = params.algorithm['params']
@@ -66,5 +67,5 @@ if __name__ == '__main__':
         mean = mean.numpy().ravel()
         std = std.numpy().ravel()
 
-        plot_max_temperature(days, mean, std, dataset)
+        plot_max_temperature(days, mean, std, dataset, figure_path)
         print(model_path)
