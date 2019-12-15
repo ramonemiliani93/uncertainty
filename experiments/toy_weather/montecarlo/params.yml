@@ -3,7 +3,7 @@ algorithm:
   name: MonteCarloDropout
   params:
     p: 0.05
-    num_samples: 10000
+    num_samples: 1000
 
 model:
   module: models
