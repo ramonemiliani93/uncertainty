@@ -42,19 +42,23 @@ class BNN(UncertaintyAlgorithm):
 
     def loss(self, *args, **kwargs) -> torch.Tensor:
         # remember that here np is JAX'S version of numpy.
-        x_train, y_train = np.array(self.dataset.features), np.array(self.dataset.targets)  #
-        x_test = np.array(self.dataset.features_test)
+        x_train, y_train = self.dataset.features, self.dataset.targets  #
+        x_test = self.dataset.features_test
+
         if len(x_train.shape) == 1:
-            x_train = np.expand_dims(x_train, -1)
+            x_train = onp.expand_dims(x_train, -1)
         if len(y_train.shape) == 1:
-            y_train = np.expand_dims(y_train, -1)
+            y_train = onp.expand_dims(y_train, -1)
         if len(x_test.shape) == 1:
-            x_test = np.expand_dims(x_test, -1)
+            x_test = onp.expand_dims(x_test, -1)
 
         num_hidden = self.args['num_hidden']
         # rescale y
         y_train = self.scaler.fit_transform(y_train)
-
+        
+        x_train = np.array(x_train)
+        y_train = np.array(y_train)
+        x_test = np.array(x_test)
         # do inference
         rng_key, rng_key_predict = random.split(random.PRNGKey(0))
         samples = self.run_inference(self.args, rng_key, x_train, y_train, num_hidden)
