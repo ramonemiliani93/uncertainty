@@ -46,10 +46,10 @@ if __name__ == '__main__':
     path = os.path.join('experiments', 'toy_weather')
     experiments = {
         'montecarlo': 'MonteCarloDropout',
-        'nn': 'DeepEnsembles',
-        'ensembles': 'DeepEnsembles',
-        'bnn': 'BNN',
-        'combined': 'Combined'
+        # 'nn': 'DeepEnsembles',
+        # 'ensembles': 'DeepEnsembles',
+        # 'bnn': 'BNN',
+        # 'combined': 'Combined'
     }
     for folder, algorithm in experiments.items():
         params_path = os.path.join(path, folder, 'params.yml')
@@ -71,9 +71,13 @@ if __name__ == '__main__':
         mean = mean.numpy().ravel()
         std = std.numpy().ravel()
 
-        X = torch.tensor(dataset.data.index[:].dayofyear.tolist()).reshape(-1,1)
+        sigma = torch.FloatTensor(dataset.std)
+        sigma = sigma.reshape(-1, 1).numpy()
+        X = torch.FloatTensor(dataset.data.index[:].dayofyear.tolist()).reshape(-1, 1)
         _, Xvar = algorithm.predict_with_uncertainty(X)
-        err = np.mean(np.abs(dataset.std - Xvar)).round(2)
+        Xvar = Xvar.reshape(-1, 1).numpy()
+
+        err = np.mean(np.abs(sigma - Xvar)).round(2)
 
         plot_max_temperature(days, mean, std, dataset, figure_path, err)
         print(model_path)
