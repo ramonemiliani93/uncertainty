@@ -6,10 +6,10 @@ algorithm:
     num_samples: 10000
     # num_inputs: (number of features for each UCI datasets)
     # BostonDataset: 13
-    # ConcreteDataset: 7
+    # ConcreteDataset: 8
     # WineWhiteDataset: 11
     # WineRedDataset:11
-    num_inputs: 13
+    num_inputs: 8
 
 model:
   module: models
@@ -21,7 +21,7 @@ optimizer:
 
 dataset:
   module: dataloader
-  name: BostonDataset
+  name: ConcreteDataset
   params: UCI
   #  num_samples: 500
   #  domain: !!python/tuple [0, 10]

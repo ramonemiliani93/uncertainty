@@ -57,8 +57,9 @@ class ConcreteDataset(UncertaintyDataset):
 
         # Build tree with the given data.
         t = AnnoyIndex(dimension, metric)
-        for i in range(self.samples.shape[0]):
-            t.add_item(i, [self.samples[i].item()])
+        for i in range(0, self.samples.shape[0]):
+            sample = list(self.samples[i])
+            t.add_item(i, sample)
         t.build(num_trees)
 
         # Generate neighbor map array.

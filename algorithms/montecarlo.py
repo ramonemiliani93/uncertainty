@@ -1,5 +1,6 @@
 from typing import Tuple
 
+import numpy as np
 import torch
 from torch.nn.functional import mse_loss
 from algorithms.base import UncertaintyAlgorithm
@@ -26,7 +27,7 @@ class MonteCarloDropout(UncertaintyAlgorithm):
         # Forward pass and MSE loss
         data, target, probability = args
         prediction = self.model(data.float())
-        mse = mse_loss(target, prediction)
+        mse = mse_loss(target.double(), prediction.double())
 
         return mse
 

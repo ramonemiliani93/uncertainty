@@ -60,7 +60,7 @@ def run(model, train_loader, val_loader, optimizer, epochs, log_interval, log_di
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model-dir', default='experiments/montecarlo', help="Directory containing params.yml")
+    parser.add_argument('--model-dir', default='experiments/combined', help="Directory containing params.yml")
     parser.add_argument('--restore-file', default=None,
                         help="Optional, name of the file in --model_dir containing weights to reload before \
                         training")  # 'best' or 'train'
@@ -132,7 +132,7 @@ if __name__ == '__main__':
             y_test = y_test.cuda()
 
         mean, std = algorithm.predict_with_uncertainty(x_test)
-        mean, std = mean.reshape(-1), std.reshape(-1)
+        # mean, std = mean.reshape(-1), std.reshape(-1)
         print(mean, std)
 
     else:
