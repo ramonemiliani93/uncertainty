@@ -52,10 +52,10 @@ if __name__ == '__main__':
 
     path = os.path.join('experiments', 'toy_weather')
     experiments = {
-        'montecarlo': 'MonteCarloDropout',
+        # 'montecarlo': 'MonteCarloDropout',
         'nn': 'DeepEnsembles',
-        'ensembles': 'DeepEnsembles',
-        'combined': 'Combined'
+        # 'ensembles': 'DeepEnsembles',
+        # 'combined': 'Combined'
     }
     for folder, algorithm in experiments.items():
         params_path = os.path.join(path, folder, 'params.yml')
@@ -66,14 +66,15 @@ if __name__ == '__main__':
         model_path = os.path.join(path, folder, 'model.pt')
         algorithm_class = getattr(algorithms, algorithm)
         algorithm_params = params.algorithm['params']
+        algorithm_params.update(params.model['params'])
         algorithm_params.update({'model': MLP, 'dataset': dataset})
         algorithm = algorithm_class(**algorithm_params)
         algorithm.load(model_path)
 
-        days = torch.tensor(np.array(list(range(366))) / 366, dtype=torch.float32).reshape(-1, 1)
+        days = torch.tensor(np.array(list(range(1, 367))), dtype=torch.float32).reshape(-1, 1)
         mean, std = algorithm.predict_with_uncertainty(days)
 
-        days = days.numpy().ravel() * 366
+        days = days.numpy().ravel()
         mean = mean.numpy().ravel()
         std = std.numpy().ravel()
 

@@ -3,8 +3,6 @@ algorithm:
   name: DeepEnsembles
   params:
     num_models: 1
-    eps: 0.01
-    adversarial: False
     warm_start_it: 6000
 
 model:
@@ -21,10 +19,9 @@ dataset:
   params:
     num_samples: 500
     domain: !!python/tuple [0, 10]
-  # more if needed
 
 parameters:
   batch_size: 500
   num_epochs: 10000
   save_summary_steps: 1
-  learning_rate: 0.001 # ?
+  learning_rate: 0.01

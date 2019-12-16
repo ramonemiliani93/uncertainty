@@ -80,6 +80,7 @@ if __name__ == '__main__':
     # Instantiate model
     model_module, model_name = params.model['module'], params.model['name']
     model = instantiate(model_module, model_name)
+    model_params = params.model['params']
 
     # Instantiate optimizer
     optimizer_module, optimizer_name = params.optimizer['module'], params.optimizer['name']
@@ -105,6 +106,7 @@ if __name__ == '__main__':
     algorithm_params.update({'model': model,
                              'dataset': dataset,
                              'x_test': x_test})
+    algorithm_params.update(model_params)
     algorithm = algorithm(**algorithm_params)
     optimizer = optimizer(algorithm.model.parameters(), lr=params.parameters['learning_rate'])
     train_loader, _ = get_data_loaders(dataset, params.parameters['batch_size'], sampler=sampler)
