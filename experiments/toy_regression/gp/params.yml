@@ -10,6 +10,7 @@ algorithm:
 model:
   module: models
   name: MLP
+  params:
 
 optimizer:
   module: torch.optim
