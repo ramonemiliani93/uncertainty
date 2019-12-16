@@ -163,12 +163,16 @@ class BNN(UncertaintyAlgorithm):
 
     def get_test_ll(self):
 
-        x_test = np.array(self.dataset.features_test.numpy())
-        y_test = np.array(self.dataset.targets_test.numpy())
+        x_test = np.array(self.dataset.features_test)
+        y_test = np.array(self.dataset.targets_test)
         mean_test, std_test = self.predict_with_uncertainty()  # predictions were already computed in the loss method
         log_variance_test = (std_test**2).log()
         # mean_test is unscaled so this should be fine
         y_test = torch.FloatTensor(onp.array(y_test))  # convert y_test to regular numpy array
+        if mean_test.shape != y_test.shape:
+            mean_test = mean_test.unsqueeze(-1)
+        if log_variance_test.shape != y_test.shape:
+            log_variance_test = log_variance_test.unsqueeze(-1)
         ll = -self.calculate_nll(y_test, mean_test, log_variance_test)
         return ll
 
