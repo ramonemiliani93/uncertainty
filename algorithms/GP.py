@@ -54,3 +54,9 @@ class GaussianProcess(UncertaintyAlgorithm):
         nll_var = nll_std ** 2
 
         return - nll, nll_std, nll_var
+
+    def save(self, path):
+        pass
+
+    def load(self, path):
+        pass
