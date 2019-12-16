@@ -45,9 +45,9 @@ if __name__ == '__main__':
 
     path = os.path.join('experiments', 'toy_weather')
     experiments = {
-        'montecarlo': 'MonteCarloDropout',
+        # 'montecarlo': 'MonteCarloDropout',
         'nn': 'DeepEnsembles',
-        'ensembles': 'DeepEnsembles',
+        # 'ensembles': 'DeepEnsembles',
         # 'bnn': 'BNN',
         # 'combined': 'Combined'
     }
