@@ -16,7 +16,7 @@ def plot_max_temperature(days, mean, std, dataset, figure_path, err):
     fig, ax = plt.subplots()
 
     ax.plot(days, mean, '-', color='black')
-    ax.fill_between(days, mean - std, mean + std, color='gray', alpha=0.2)
+    ax.fill_between(days, mean - 2 * std, mean + 2 * std, color='gray', alpha=0.2)
 
     # Plot real function
     ax.plot(dataset.mean, '--')
