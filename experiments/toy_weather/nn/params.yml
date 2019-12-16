@@ -3,7 +3,7 @@ algorithm:
   name: DeepEnsembles
   params:
     num_models: 1
-    warm_start_it: 5000
+    warm_start_it: 1000
 
 model:
   module: models
@@ -31,6 +31,6 @@ sampler:
 
 parameters:
   batch_size: 500
-  num_epochs: 10000
+  num_epochs: 1000
   save_summary_steps: 1
   learning_rate: 0.01
