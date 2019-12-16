@@ -17,13 +17,13 @@ optimizer:
   name: Adam
 
 dataset:
-  module: dataloader
+  module: data_loader
   name: WeatherDataset
   params:
     variable: 'max-temp'
 
 sampler:
-  module: dataloader
+  module: data_loader
   name:
   params:
     neighbors: 100
