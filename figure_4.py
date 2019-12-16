@@ -71,7 +71,7 @@ if __name__ == '__main__':
         days = torch.FloatTensor(days)
         mean, std = algorithm.predict_with_uncertainty(days)
 
-        days = days.numpy().ravel() * 366
+        days = days.numpy().ravel()
         mean = mean.numpy().ravel()
         std = std.numpy().ravel()
 
