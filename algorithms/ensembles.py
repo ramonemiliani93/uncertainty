@@ -52,7 +52,7 @@ class DeepEnsembles(UncertaintyAlgorithm):
             if self._current_it < self.warm_start_it:
                 nll += self.calculate_nll(target, predictive_mean, (torch.ones_like(predictive_mean) * 0.001).log())
             else:
-                nll += self.calculate_nll(target, predictive_mean, predictive_log_variance)
+                nll += self.calculate_nll(target, predictive_mean, predictive_log_variance + 0.01)
 
             # If adversarial training enabled generate sample
             # if self.adversarial:  # TODO
