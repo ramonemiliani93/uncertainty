@@ -14,7 +14,7 @@ class ConcreteDataset(UncertaintyDataset):
     def __init__(self, split="train"):
         super(ConcreteDataset, self).__init__()
 
-        concrete = pd.read_excel(r"../data/concrete_data.xls")
+        concrete = pd.read_excel(r"/tmp/pycharm_project_307/dataloader/data/concrete_data.xls")
         data = concrete.values[:, :-1]
         targets = concrete.values[:, -1:]
 

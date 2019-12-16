@@ -1,6 +1,7 @@
 from typing import Tuple
 
 import torch
+import numpy as np
 from torch import nn
 from algorithms.base import UncertaintyAlgorithm
 from utils import plot_toy_uncertainty
@@ -121,18 +122,22 @@ class DeepEnsembles(UncertaintyAlgorithm):
     @staticmethod
     def calculate_nll(target, mean, log_variance):
         # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
-        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance))).mean()
-
+        log_two_pi_term = (torch.ones_like(mean, dtype=torch.float32) * np.pi * 2).log()
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
         return nll
 
-    def get_test_ll(self, y_test, mean_test, std_test):
+    @staticmethod
+    def get_test_ll(y_test, mean_test, std_test):
 
-        #x_test = self.dataset.features_test
-        #y_test = self.dataset.targets_test
-        #mean_test, std_test = self.predict_with_uncertainty(x_test)
-        log_variance_test = (std_test**2).log()
-        ll = -self.calculate_nll(y_test, mean_test, log_variance_test)
-        return ll
+        log_variance = (std_test**2).log()
+        log_two_pi_term = (torch.ones_like(mean_test, dtype=torch.float32) * np.pi * 2).log()
+
+        nll = (log_variance / 2 + ((y_test - mean_test) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
+        #nll = (log_variance / 2 + ((y_test - mean_test) ** 2) / (2 * torch.exp(log_variance))).mean()
+        nll_std = (log_variance / 2 + ((y_test - mean_test) ** 2) / (2 * torch.exp(log_variance))).std()
+        nll_var = nll_std ** 2
+
+        return - nll, nll_std, nll_var
 
 
 if __name__ == '__main__':

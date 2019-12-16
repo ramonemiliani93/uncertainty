@@ -14,7 +14,7 @@ class WineRedDataset(UncertaintyDataset):
     def __init__(self, split="train"):
         super(WineRedDataset, self).__init__()
 
-        wine_red = pd.read_csv("../data/winequality_red.csv", sep=';')
+        wine_red = pd.read_csv("/tmp/pycharm_project_307/dataloader/data/winequality_red.csv", sep=';')
         data = wine_red.values[:, :-1]
         targets = wine_red.values[:, -1:]
 

@@ -1,5 +1,8 @@
+from typing import Tuple
+
 import torch
 import numpy as np
+import pdb
 from algorithms.base import UncertaintyAlgorithm
 import GPy
 
@@ -11,6 +14,10 @@ class GaussianProcess(UncertaintyAlgorithm):
 
         self.dataset = kwargs.get('dataset')
 
+        # Create model
+        model = kwargs.get('model')
+        self.model = model(**dict(**kwargs)).float()
+
     def predict_with_uncertainty(self, *args, **kwargs) -> Tuple[torch.Tensor, torch.Tensor]:
 
         dim = self.dataset.samples.shape[1]
@@ -21,24 +28,30 @@ class GaussianProcess(UncertaintyAlgorithm):
         model = GPy.models.GPRegression(X, y, kern, normalizer=True)
         model.optimize()
 
-        mu_test, cov_test = model.predict(args[0], full_cov=True)
+        mu_test, cov_test = model.predict(args[0].numpy(), full_cov=True)
         var_test = np.diag(cov_test).reshape(-1, 1)
         std_test = var_test ** (1/2)
 
-        return mu_test, std_test
+        return torch.tensor(mu_test), torch.tensor(std_test)
+
+    def loss(self, *args, **kwargs) -> torch.Tensor:
+        pass
 
     @staticmethod
     def calculate_nll(target, mean, log_variance):
         # Estimate the negative log-likelihood. Here we estimate log of sigma squared for stability in training.
-        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance))).mean()
-
+        log_two_pi_term = (torch.ones_like(mean, dtype=torch.float32) * np.pi * 2).log()
+        nll = (log_variance / 2 + ((target - mean) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
         return nll
 
-    def get_test_ll(self, y_test, mean_test, std_test):
+    @staticmethod
+    def get_test_ll(y_test, mean_test, std_test):
+        log_variance = (std_test ** 2).log()
+        log_two_pi_term = (torch.ones_like(mean_test, dtype=torch.float32) * np.pi * 2).log()
 
-        #x_test = self.dataset.features_test
-        #y_test = self.dataset.targets_test
-        #mean_test, std_test = self.predict_with_uncertainty(x_test)
-        log_variance_test = (std_test**2).log()
-        ll = -self.calculate_nll(y_test, mean_test, log_variance_test)
-        return ll
+        nll = (log_variance / 2 + ((y_test - mean_test) ** 2) / (2 * torch.exp(log_variance)) + log_two_pi_term).mean()
+        # nll = (log_variance / 2 + ((y_test - mean_test) ** 2) / (2 * torch.exp(log_variance))).mean()
+        nll_std = (log_variance / 2 + ((y_test - mean_test) ** 2) / (2 * torch.exp(log_variance))).std()
+        nll_var = nll_std ** 2
+
+        return - nll, nll_std, nll_var
