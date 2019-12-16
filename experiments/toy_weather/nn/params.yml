@@ -6,12 +6,12 @@ algorithm:
     eps: 0.01
     adversarial: False
     warm_start_it: 10000
+    activation: 'lrelu'
 
 model:
   module: models
   name: MLP
   params:
-    activation: 'lrelu'
 
 optimizer:
   module: torch.optim
