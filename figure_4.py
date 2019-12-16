@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
         dataset = WeatherDataset()
         X = torch.FloatTensor(dataset.data.index[:].dayofyear.tolist()).reshape(-1, 1)
-        days = torch.tensor(np.array(list(range(366))) / 366, dtype=torch.float32).reshape(-1, 1)
+        days = torch.tensor(np.array(list(range(366))), dtype=torch.float32).reshape(-1, 1)
         # size = (X.max() - X.min()) / 50
         # days = np.linspace(X.min() - size, X.max() + size, 500).reshape(-1, 1)
         # days = torch.FloatTensor(days)
