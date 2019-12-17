@@ -1,20 +1,18 @@
 algorithm:
   module: algorithms
-  name: Combined
+  name: GaussianProcess
   params:
-    num_models: 1
-    init_gamma: 0.01
-    num_inducing_points: 500
-    warm_start_it: 25000
-    eta: 3.5**2
-    switch_modulo: 2
-    a: -6.9077
+    num_models: 5
+    eps: 0.01
+    adversarial: False
+    warm_start_it: 5000
     # num_inputs: (number of features for each UCI datasets)
     # BostonDataset: 13
     # ConcreteDataset: 8
     # WineWhiteDataset: 11
     # WineRedDataset:11
     num_inputs: 13
+    inducing: 500
 
 model:
   module: models
@@ -28,20 +26,20 @@ dataset:
   module: dataloader
   name: BostonDataset
   params: UCI
-    #num_samples: 500
-    #domain: !!python/tuple [0, 10]
+  #  num_samples: 500
+  #  domain: !!python/tuple [0, 10]
   # more if needed
 
 sampler:
   module: dataloader
-  name: LocalitySampler
+  name:
   params:
-    neighbors: 30
-    ssu: 25
-    psu: 5
+    neighbors: 100
+    ssu: 100
+    psu: 100
 
 parameters:
   batch_size: 500
-  num_epochs: 50000
+  num_epochs: 10
   save_summary_steps: 1
-  learning_rate: 0.001 # ?
+  learning_rate: 0.0001 # ?
