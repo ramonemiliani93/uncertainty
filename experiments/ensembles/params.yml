@@ -11,7 +11,7 @@ algorithm:
     # ConcreteDataset: 8
     # WineWhiteDataset: 11
     # WineRedDataset:11
-    num_inputs: 8
+    num_inputs: 13
 
 model:
   module: models
@@ -23,7 +23,7 @@ optimizer:
 
 dataset:
   module: dataloader
-  name: ConcreteDataset
+  name: BostonDataset
   params: UCI
   #  num_samples: 500
   #  domain: !!python/tuple [0, 10]

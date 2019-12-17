@@ -131,15 +131,19 @@ if __name__ == '__main__':
             x_test = x_test.cuda()
             y_test = y_test.cuda()
 
-        mean, std = algorithm.predict_with_uncertainty(x_test)
-        # mean, std = mean.reshape(-1), std.reshape(-1)
-        print(mean, std)
+        mean, std, rmse = algorithm.predict_with_uncertainty(x_test, y_test)
+        mean, std = mean.reshape(-1), std.reshape(-1)
+        y_test = y_test.reshape(-1)
+
+        print(y_test.shape)
+        print(mean.shape)
+        print(std.shape)
 
     else:
 
         x = np.linspace(-4, 14, 5000)
         x_tensor = torch.FloatTensor(x).reshape(-1, 1)
-        mean, std = algorithm.predict_with_uncertainty(x_tensor)
+        mean, std, rmse = algorithm.predict_with_uncertainty(x_tensor)
         mean, std = mean.reshape(-1), std.reshape(-1)
 
     mean_test_ll, std_test_ll, var_test_ll = algorithm.get_test_ll(y_test, mean, std)
@@ -147,6 +151,8 @@ if __name__ == '__main__':
     print('mean:', mean_test_ll)
     print('std:', std_test_ll)
     print('var:', var_test_ll)
+
+    print('rmse', rmse)
 
     # Start plotting
     if dataset_params == "UCI":
